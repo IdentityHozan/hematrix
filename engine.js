@@ -6,9 +6,9 @@
 export const CYCLE_SECONDS = 600;
 export const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 export const CARTRIDGES = {
-  complete: { name: 'Complete Routine', short: 'Complete', price: 69, description: 'ABO/RhD, antibody screen and one indicated donor-specific serological crossmatch.' },
-  type: { name: 'Type & Screen', short: 'Type & Screen', price: 49, description: 'Forward and reverse ABO grouping, RhD typing and red-cell antibody screening.' },
-  match: { name: 'Match Only', short: 'Match Only', price: 39, description: 'An additional donor-specific crossmatch, conditional on a valid prior patient workup.' }
+  complete: { name: 'Complete Routine', short: 'Complete', price: 79, description: 'Checks the patient’s blood group and antibodies, plus one selected donor unit.' },
+  type: { name: 'Type and Screen', short: 'Type and Screen', price: 59, description: 'Checks the patient’s blood group and looks for antibodies that may affect donor matching.' },
+  match: { name: 'Match Only', short: 'Match Only', price: 49, description: 'Checks one additional donor unit using valid earlier patient test results.' }
 };
 export const DONORS = [
   { id: 'DU-7001', group: 'A+', antigens: ['A', 'D'], label: 'A positive, K negative' },
@@ -22,21 +22,21 @@ export const DONORS = [
   { id: 'DU-7009', group: 'O+', antigens: ['D'], label: 'O positive, K negative' }
 ];
 export const SCENARIOS = [
-  { id: 'routine', title: 'Routine compatibility', subtitle: 'Complete routine testing followed by qualified laboratory review.', group: 'A+', donor: 'DU-7001', screen: 'negative', kind: 'Routine' },
-  { id: 'abo', title: 'ABO-incompatible donor', subtitle: 'A recipient with anti-B reacts with group B donor red cells.', group: 'A+', donor: 'DU-7002', screen: 'negative', kind: 'Investigation' },
-  { id: 'antibody', title: 'Same group, reactive crossmatch', subtitle: 'An A positive recipient with anti-K is tested against an A positive, K-positive donor.', group: 'A+', donor: 'DU-7003', screen: 'positive', kind: 'Investigation', antibody: 'K' },
-  { id: 'screen', title: 'Positive antibody screen', subtitle: 'A reactive screening cell requires further antibody investigation.', group: 'A+', donor: 'DU-7001', screen: 'positive', kind: 'Investigation', antibody: 'K' },
-  { id: 'weak', title: 'Weak screening reaction', subtitle: 'A weak screening reaction requires review before a result can be authorised.', group: 'O+', donor: 'DU-7009', screen: 'weak', kind: 'Investigation', antibody: 'K' },
-  { id: 'equivocal', title: 'Equivocal optical pattern', subtitle: 'The screening image cannot be confidently classified.', group: 'B+', donor: 'DU-7002', screen: 'equivocal', kind: 'Investigation' },
-  { id: 'mismatch', title: 'Wrong patient or specimen', subtitle: 'The specimen barcode does not match the selected patient order.', group: 'A+', donor: 'DU-7001', screen: 'negative', kind: 'Identification', faults: ['wrong-patient'] },
-  { id: 'qc', title: 'Control failure', subtitle: 'A failed positive control makes the analytical result invalid.', group: 'A+', donor: 'DU-7001', screen: 'negative', kind: 'Quality control', faults: ['control'] },
-  { id: 'urgent', title: 'Urgent emergency request', subtitle: 'An urgent request takes the next available bay without interrupting ongoing tests.', group: 'O-', donor: 'DU-7004', screen: 'negative', kind: 'Urgent' },
-  { id: 'massive', title: 'Massive transfusion', subtitle: 'Authorised emergency release proceeds independently while testing continues.', group: 'O-', donor: 'DU-7004', screen: 'negative', kind: 'Emergency' },
-  { id: 'volume', title: 'High-volume blood bank', subtitle: 'Independent bays process a mixed queue across one or two analysers.', group: 'A+', donor: 'DU-7001', screen: 'negative', kind: 'Workload' },
-  { id: 'network', title: 'Hospital network disconnected', subtitle: 'Local evidence is retained. An authorised result waits for transfer.', group: 'A+', donor: 'DU-7001', screen: 'negative', kind: 'Communication', disconnected: true },
-  { id: 'mechanical', title: 'Isolated bay fault', subtitle: 'The affected bay is unavailable while other bays continue independently.', group: 'A+', donor: 'DU-7001', screen: 'negative', kind: 'Instrument', unavailableBays: [1] },
-  { id: 'expired', title: 'Expired cartridge', subtitle: 'The expired cartridge cannot be used for testing.', group: 'A+', donor: 'DU-7001', screen: 'negative', kind: 'Preflight', faults: ['expired'] },
-  { id: 'insufficient', title: 'Insufficient specimen', subtitle: 'The available sample cannot fill the required pathways and controls.', group: 'A+', donor: 'DU-7001', screen: 'negative', kind: 'Preflight', faults: ['insufficient'] }
+  { id: 'routine', title: 'Routine test', subtitle: 'Run the required checks, then review the results before approval.', group: 'A+', donor: 'DU-7001', screen: 'negative', kind: 'Routine' },
+  { id: 'abo', title: 'Donor blood group does not match', subtitle: 'The patient sample reacts with cells from a donor with the wrong blood group.', group: 'A+', donor: 'DU-7002', screen: 'negative', kind: 'Investigation' },
+  { id: 'antibody', title: 'Same blood group, donor reaction', subtitle: 'Matching blood-group labels can still lead to a reaction with the selected donor.', group: 'A+', donor: 'DU-7003', screen: 'positive', kind: 'Investigation', antibody: 'K' },
+  { id: 'screen', title: 'Antibody check finds a reaction', subtitle: 'The antibody check finds a reaction that needs further laboratory investigation.', group: 'A+', donor: 'DU-7001', screen: 'positive', kind: 'Investigation', antibody: 'K' },
+  { id: 'weak', title: 'Weak reaction', subtitle: 'A weak reaction needs review before the result can be approved.', group: 'O+', donor: 'DU-7009', screen: 'weak', kind: 'Investigation', antibody: 'K' },
+  { id: 'equivocal', title: 'Unclear reaction image', subtitle: 'The camera image is unclear. The test cannot be called positive or negative.', group: 'B+', donor: 'DU-7002', screen: 'equivocal', kind: 'Investigation' },
+  { id: 'mismatch', title: 'Sample ID does not match', subtitle: 'The sample barcode does not match the selected patient and test order.', group: 'A+', donor: 'DU-7001', screen: 'negative', kind: 'Identification', faults: ['wrong-patient'] },
+  { id: 'qc', title: 'Quality check failed', subtitle: 'A required quality check fails, so the test result cannot be approved.', group: 'A+', donor: 'DU-7001', screen: 'negative', kind: 'Quality control', faults: ['control'] },
+  { id: 'urgent', title: 'Urgent request', subtitle: 'An urgent request starts in an available bay while other tests continue.', group: 'O-', donor: 'DU-7004', screen: 'negative', kind: 'Urgent' },
+  { id: 'massive', title: 'Major bleeding emergency', subtitle: 'The hospital’s emergency blood-release process continues while testing runs.', group: 'O-', donor: 'DU-7004', screen: 'negative', kind: 'Emergency' },
+  { id: 'volume', title: 'Several samples at once', subtitle: 'Different samples can run at the same time in separate bays.', group: 'A+', donor: 'DU-7001', screen: 'negative', kind: 'Workload' },
+  { id: 'network', title: 'Connection lost', subtitle: 'The result stays on the machine while it waits for the hospital connection.', group: 'A+', donor: 'DU-7001', screen: 'negative', kind: 'Communication', disconnected: true },
+  { id: 'mechanical', title: 'One test bay is unavailable', subtitle: 'One bay is unavailable. Other bays may continue if the shared systems pass their checks.', group: 'A+', donor: 'DU-7001', screen: 'negative', kind: 'Instrument', unavailableBays: [1] },
+  { id: 'expired', title: 'Expired test kit', subtitle: 'The test kit has expired and must be replaced.', group: 'A+', donor: 'DU-7001', screen: 'negative', kind: 'Preflight', faults: ['expired'] },
+  { id: 'insufficient', title: 'Not enough sample', subtitle: 'There is not enough sample to complete the required tests and quality checks.', group: 'A+', donor: 'DU-7001', screen: 'negative', kind: 'Preflight', faults: ['insufficient'] }
 ];
 export const STAGES = [
   { time: 0, label: 'Verify & load', description: 'Match patient, specimen and order; identify the cartridge and donor unit.' },
@@ -48,16 +48,16 @@ export const STAGES = [
   { time: 600, label: 'Qualified review', description: 'A qualified laboratory reviewer evaluates the evidence before authorisation.' }
 ];
 export const FAULTS = [
-  { id: 'wrong-patient', name: 'Patient ID mismatch', detail: 'The specimen is linked to a different patient. Resolve identification and repeat.' },
-  { id: 'expired', name: 'Expired reagent', detail: 'The cartridge has expired. Replace it before testing.' },
-  { id: 'optical', name: 'Optical obstruction', detail: 'The camera reference image is obscured. Restore optics and repeat.' },
+  { id: 'wrong-patient', name: 'Patient and sample IDs do not match', detail: 'The sample belongs to a different patient. Correct the identification before testing.' },
+  { id: 'expired', name: 'Expired test kit', detail: 'The cartridge has expired. Replace it before testing.' },
+  { id: 'optical', name: 'Camera view blocked', detail: 'The camera cannot read the test area clearly. Check the camera path and repeat the test.' },
   { id: 'bubble', name: 'Air bubble', detail: 'A bubble interrupts chamber filling and optical interpretation. Replace or repeat.' },
-  { id: 'control', name: 'Failed control', detail: 'The expected positive-control reaction is absent. No analytical result is valid.' },
-  { id: 'insufficient', name: 'Insufficient sample', detail: 'The requested chambers cannot receive a sufficient metered sample.' },
-  { id: 'temperature', name: 'Assay condition excursion', detail: 'Assay temperature or timing is outside the method’s accepted range.' },
-  { id: 'maintenance', name: 'Maintenance overdue', detail: 'Required instrument maintenance is overdue.' },
-  { id: 'discrepancy', name: 'ABO discrepancy', detail: 'Forward and reverse ABO results disagree. Further investigation is required.' },
-  { id: 'cartridge', name: 'Cartridge ID mismatch', detail: 'The cartridge identifier is not accepted for the selected order.' }
+  { id: 'control', name: 'Quality check failed', detail: 'The required positive quality check did not react as expected. The test result is invalid.' },
+  { id: 'insufficient', name: 'Not enough sample', detail: 'There is not enough sample to fill the required test areas.' },
+  { id: 'temperature', name: 'Test temperature or timing out of range', detail: 'The test temperature or timing is outside its accepted range.' },
+  { id: 'maintenance', name: 'Machine service due', detail: 'The machine needs its required service checks before testing.' },
+  { id: 'discrepancy', name: 'Blood group checks disagree', detail: 'The blood group checks do not agree. Further laboratory investigation is needed.' },
+  { id: 'cartridge', name: 'Test kit ID does not match', detail: 'The test kit ID does not match the selected test order.' }
 ];
 const PREFLIGHT_FAULTS = new Set(['wrong-patient', 'expired', 'insufficient', 'maintenance', 'cartridge']);
 const PRIORITY = { urgent: 0, routine: 1, special: 2, review: 3 };

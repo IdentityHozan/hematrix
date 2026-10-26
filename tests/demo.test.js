@@ -116,7 +116,7 @@ test('a same-group antibody-dependent incompatibility remains held after analysi
   assert.equal(model.result.screen, 'Reactive');
   assert.equal(model.result.crossmatch, 'Reactive');
   assert.equal(model.result.eligible, false);
-  assert.match(model.instruction, /antibody investigation/i);
+  assert.match(model.instruction, /antibody.*investigation/i);
 });
 
 test('Type & Screen never displays a donor-specific result', () => {
@@ -124,7 +124,7 @@ test('Type & Screen never displays a donor-specific result', () => {
   act(state, { type: 'cartridge', value: 'type' });
   const model = deriveDemo(run(state), seated);
   assert.equal(model.result.crossmatch, 'Not requested');
-  assert.ok(model.machine.lines.includes('Crossmatch not requested'));
+  assert.ok(model.machine.lines.includes('No donor check requested'));
 });
 
 test('Match Only distinguishes valid historical grouping from a newly measured result', () => {
@@ -138,7 +138,7 @@ test('Match Only distinguishes valid historical grouping from a newly measured r
   state.patient.validPrior = false;
   const blocked = deriveDemo(state, seated);
   assert.equal(blocked.phase, 'blocked');
-  assert.equal(blocked.title, 'Prior workup required');
+  assert.equal(blocked.title, 'Earlier test results needed');
 });
 
 test('local authorisation during network loss does not claim a completed ward handover', () => {

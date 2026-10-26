@@ -1,239 +1,216 @@
 /**
- * Proposed HemaTrix system relationships for the engineering demonstration.
- * Manual specimen transfers are listed for explanation only. They are not
- * permanent fluid connections to the reusable instrument.
+ * Proposed HemaTrix relationships from the revised reference build.
+ * Legacy connection IDs and the internal "pressure" kind are retained for UI
+ * compatibility. The represented mechanism is local dry mechanical movement.
+ * Specimen fractions are loaded manually; all wet paths remain disposable.
  */
 export const CONNECTION_KINDS = Object.freeze({
-  pressure: Object.freeze({ label: 'Pressure and control', color: '#8778b6' }),
-  optical: Object.freeze({ label: 'Optical path', color: '#b58a24' }),
-  data: Object.freeze({ label: 'Data', color: '#3c7fa4' }),
-  power: Object.freeze({ label: 'Power', color: '#667078' })
+  pressure: Object.freeze({ label: 'Movement', technicalLabel: 'Local mechanical actuation', color: '#8778b6' }),
+  optical: Object.freeze({ label: 'Light and image', technicalLabel: 'Optical path', color: '#b58a24' }),
+  data: Object.freeze({ label: 'Data', technicalLabel: 'Electrical control and image data', color: '#3c7fa4' }),
+  power: Object.freeze({ label: 'Power', technicalLabel: 'Electrical supply', color: '#667078' })
 });
 
-/** Ordered parts of the proposed dry docking interface; no dimensions or pressures are specified. */
+/** Ordered parts of one bay's proposed dry mechanical cartridge interface. */
 export const DOCK_INTERFACE = Object.freeze([
   {
     id: 'bay-valve',
-    name: 'Bay valve assembly',
+    name: 'Bay motor driver',
+    simpleName: 'Movement controller',
     view: 'dock',
     side: 'reusable',
-    description: 'A separately controlled valve selects the local dry-air branch for one installed bay. It controls the proposed actuation supply rather than carrying patient or donor specimen.',
-    interfacesWith: ['air-manifold', 'bay-dock']
+    description: 'Each bay has one dual motor-driver board that controls its two 12 V dry linear actuators. The drivers and actuators are local to that bay.',
+    simpleDescription: 'This bay controls its own two small mechanical drives.',
+    interfacesWith: ['processor', 'backplane', 'pumps']
   },
   {
     id: 'bay-dock',
-    name: 'Dry cartridge docking block',
+    name: 'Cartridge dock',
+    simpleName: 'Cartridge holder',
     view: 'dock',
     side: 'reusable',
-    description: 'The docking block locates the inserted cartridge and mates the proposed dry actuation ports. Biological specimen remains within the sealed disposable assay path.',
-    interfacesWith: ['bay-valve', 'dock-seal']
+    description: 'The proposed PETG dock locates and holds the disposable cartridge. Two insertion limit switches provide cartridge-position information; liquids remain in the cartridge.',
+    simpleDescription: 'The holder positions the cartridge and checks that it is inserted.',
+    interfacesWith: ['pumps', 'dock-seal', 'cartridge']
   },
   {
     id: 'dock-seal',
-    name: 'Dry-interface seal',
+    name: 'Silicone dry contact pad',
+    simpleName: 'Dry contact pad',
     view: 'dock',
     side: 'reusable',
-    description: 'The proposed interface gasket seals the dry actuation connection when the cartridge is seated. Its material, sealing performance and service life require engineering validation.',
-    interfacesWith: ['bay-dock', 'cartridge-membrane']
+    description: 'The proposed silicone interface pad provides dry mechanical contact between the local actuator mechanism and the cartridge contact surface. It is not a reusable liquid pathway.',
+    simpleDescription: 'The soft pad transfers movement without carrying sample liquid.',
+    interfacesWith: ['pumps', 'bay-dock', 'cartridge-membrane']
   },
   {
     id: 'cartridge-membrane',
-    name: 'Disposable actuation membrane',
+    name: 'Cartridge contact surface',
+    simpleName: 'Disposable contact surface',
     view: 'dock',
     side: 'disposable',
-    description: 'A proposed flexible wall in the single-use cartridge responds to actuation from its dry side to control the internal assay fluid. The membrane separates the dry actuator interface from the contained specimen-contact channel; this separation remains a design premise requiring validation.',
+    description: 'The cartridge presents a dry contact surface to the mechanical interface. The detailed internal cartridge mechanism remains a proposed design; all specimen-contact liquid paths and waste stay inside the disposable cartridge.',
+    simpleDescription: 'The reusable drive touches the cartridge exterior; the wet assay paths stay inside.',
     interfacesWith: ['dock-seal', 'cartridge']
   }
 ].map(part => Object.freeze({ ...part, interfacesWith: Object.freeze(part.interfacesWith) })));
 
 export const CONNECTIONS = Object.freeze([
   {
-    id: 'pressure-dock',
-    kind: 'pressure',
-    label: 'Pneumatic pressure and control',
-    from: 'pumps',
-    to: 'bays',
-    description: 'The proposed fluid-control assembly applies controlled pressure at the sealed cartridge docking interface. Specimen-contact fluid paths remain inside the single-use cartridge.',
-    color: '#8778b6'
+    id: 'pressure-dock', kind: 'pressure', label: 'Move the cartridge mechanism',
+    technicalLabel: 'Local linear-actuator contact', from: 'pumps', to: 'dock-seal',
+    description: 'The selected bay uses its own two dry linear actuators to operate the proposed cartridge mechanism through a silicone dry contact pad. The reusable drive carries no sample liquid.',
+    simpleDescription: 'Small drives in this bay move the cartridge mechanism through a dry pad.'
   },
   {
-    id: 'optical-capture',
-    kind: 'optical',
-    label: 'Reaction-window imaging',
-    from: 'wells',
-    to: 'optics',
-    description: 'Controlled illumination and the camera reveal the reaction-window pattern for assay-specific interpretation and qualified review. The illustrated optical path is a proposed engineering arrangement.',
-    color: '#b58a24'
+    id: 'optical-capture', kind: 'optical', label: 'Read the reaction',
+    technicalLabel: 'Camera and ring-light imaging', from: 'wells', to: 'optics',
+    description: 'One camera and one white ring-illumination board in each bay record the cartridge reaction windows for software interpretation and qualified review.',
+    simpleDescription: 'The bay light and camera record what happened in the reaction chambers.'
   },
   {
-    id: 'camera-data',
-    kind: 'data',
-    label: 'Captured image data',
-    from: 'optics',
-    to: 'processor',
-    description: 'The camera sends the captured image and instrument status to the processing board. The software associates this evidence with the identified specimen and testing bay.',
-    color: '#3c7fa4'
+    id: 'camera-data', kind: 'data', label: 'Send the reaction image',
+    technicalLabel: 'Captured image data', from: 'optics', to: 'processor',
+    description: 'The bay camera sends the captured image and status to the processing board. The software associates this evidence with the correct specimen and testing bay.',
+    simpleDescription: 'The camera image is linked to the correct sample record.'
   },
   {
-    id: 'display-data',
-    kind: 'data',
-    label: 'Operator display data',
-    from: 'processor',
-    to: 'screen',
-    description: 'The processing board supplies test progress, quality-control findings and review status to the operator display. A displayed analytical result is not an independent transfusion authorisation.',
-    color: '#3c7fa4'
+    id: 'display-data', kind: 'data', label: 'Show progress and results',
+    technicalLabel: 'Operator display data', from: 'processor', to: 'screen',
+    description: 'The processing board supplies progress, control findings and review status to the operator display. Staff must review and authorise an eligible result.',
+    simpleDescription: 'The screen shows progress and findings for staff review.'
   },
   {
-    id: 'power-processor',
-    kind: 'power',
-    label: 'Processing-board power',
-    from: 'power',
-    to: 'processor',
-    description: 'The proposed internal power supply provides a regulated electrical supply to the processing and control electronics.',
-    color: '#667078'
+    id: 'power-processor', kind: 'power', label: 'Power the controller',
+    technicalLabel: 'Processing-board electrical supply', from: 'power', to: 'processor',
+    description: 'The analyser power supply feeds the processing and control electronics.',
+    simpleDescription: 'The power supply runs the main controller.'
   },
   {
-    id: 'power-optics',
-    kind: 'power',
-    label: 'Optical-assembly power',
-    from: 'power',
-    to: 'optics',
-    description: 'The proposed internal power distribution supplies the camera and controlled illumination assembly.',
-    color: '#667078'
+    id: 'power-optics', kind: 'power', label: 'Power the camera and light',
+    technicalLabel: 'Bay imaging electrical supply', from: 'power', to: 'optics',
+    description: 'The analyser electrical supply powers the selected bay camera and white ring-illumination board.',
+    simpleDescription: 'Electrical power runs the bay camera and light.'
   },
   {
-    id: 'power-control',
-    kind: 'power',
-    label: 'Fluid-control power',
-    from: 'power',
-    to: 'pumps',
-    description: 'The proposed internal power distribution supplies the pressure and fluid-control actuators. This electrical path carries no patient or donor specimen.',
-    color: '#667078'
+    id: 'power-control', kind: 'power', label: 'Power this bay’s drives',
+    technicalLabel: 'Local motor-driver and actuator supply', from: 'power', to: 'pumps',
+    description: 'Electrical power reaches the selected bay’s two dry linear actuators through that bay’s dual motor driver. There is no mechanical drive shared across testing bays.',
+    simpleDescription: 'Each bay has powered drives of its own.'
   },
   {
-    id: 'system-air-supply',
-    kind: 'pressure',
-    label: 'Core dry-air supply',
-    from: 'pumps',
-    to: 'air-manifold',
-    description: 'Within one analyser, the proposed pressure assembly supplies a local dry-air manifold. Neither patient specimen nor donor specimen circulates in this reusable manifold.',
-    color: '#8778b6'
+    id: 'system-air-supply', kind: 'pressure', label: 'Control the first local drive',
+    technicalLabel: 'Bay-local actuator 1 control', from: 'bay-valve', to: 'pumps',
+    description: 'One output of the bay’s dual motor-driver board controls the first of its two dry linear actuators. This relationship exists locally in each installed bay.',
+    simpleDescription: 'This bay’s movement controller operates its first drive.'
   },
   {
-    id: 'system-air-branch',
-    kind: 'pressure',
-    label: 'Independent bay actuation branch',
-    from: 'air-manifold',
-    to: 'bay-valve',
-    description: 'A branch from the local dry-air manifold serves each installed bay valve. The controller selects the indicated branch; a shared supply fault would require assessment of every affected bay.',
-    color: '#8778b6'
+    id: 'system-air-branch', kind: 'pressure', label: 'Control the second local drive',
+    technicalLabel: 'Bay-local actuator 2 control', from: 'bay-valve', to: 'pumps',
+    description: 'The second output of the same local dual motor driver controls the bay’s second dry linear actuator. Additional bays have their own driver and actuator pair.',
+    simpleDescription: 'This bay’s movement controller operates its second drive.'
   },
   {
-    id: 'system-dock-actuation',
-    kind: 'pressure',
-    label: 'Dry docking actuation',
-    from: 'bay-valve',
-    to: 'bay-dock',
-    description: 'The selected bay valve applies controlled actuation at the seated cartridge docking interface. The proposed dry ports act on isolated disposable membrane regions rather than providing a reusable blood-fluid circuit.',
-    color: '#8778b6'
+    id: 'system-dock-actuation', kind: 'pressure', label: 'Transfer movement through the pad',
+    technicalLabel: 'Local actuator-to-pad mechanical contact', from: 'pumps', to: 'dock-seal',
+    description: 'The selected bay’s actuator mechanism applies movement through its silicone dry contact pad to the cartridge. The proposed connection transfers mechanical motion, not sample liquid.',
+    simpleDescription: 'The local drive moves the cartridge mechanism through a dry contact pad.'
   },
   {
-    id: 'system-data-trunk',
-    kind: 'data',
-    label: 'Local control backplane',
-    from: 'processor',
-    to: 'backplane',
-    description: 'The analyser controller exchanges bay commands, captured-image records and status through its local data backplane. Each record remains associated with its identified bay and specimen.',
-    color: '#3c7fa4'
+    id: 'system-data-trunk', kind: 'data', label: 'Connect the bay controls',
+    technicalLabel: 'Local control backplane data', from: 'processor', to: 'backplane',
+    description: 'The controller exchanges bay commands, image records and status through the analyser’s electrical data backplane. Every installed bay retains its own mechanical actuators.',
+    simpleDescription: 'The data backplane links each bay to the main controller.'
   },
   {
-    id: 'system-data-branch',
-    kind: 'data',
-    label: 'Bay imaging data branch',
-    from: 'backplane',
-    to: 'optics',
-    description: 'A local backplane branch connects each installed bay imaging assembly. Imaging commands travel to the bay, while captured images and bay status return to the controller.',
-    color: '#3c7fa4'
+    id: 'system-data-branch', kind: 'data', label: 'Connect this bay’s camera',
+    technicalLabel: 'Bay imaging data branch', from: 'backplane', to: 'optics',
+    description: 'The electrical data branch carries commands to this bay’s imaging assembly and returns its captured images and status.',
+    simpleDescription: 'This bay sends its camera images and status over the data connection.'
   },
   {
-    id: 'system-power-trunk',
-    kind: 'power',
-    label: 'Local electrical distribution',
-    from: 'power',
-    to: 'backplane',
-    description: 'The analyser power supply feeds its local electrical distribution backplane. This is an internal electrical connection, separate from pneumatic actuation and disposable specimen paths.',
-    color: '#667078'
+    id: 'system-power-trunk', kind: 'power', label: 'Distribute electrical power',
+    technicalLabel: 'Local electrical distribution backplane', from: 'power', to: 'backplane',
+    description: 'The analyser power supply feeds an electrical distribution backplane. This shared electrical supply does not imply a shared mechanical drive or reusable liquid circuit.',
+    simpleDescription: 'The backplane distributes electricity to the installed bays.'
   },
   {
-    id: 'system-power-branch',
-    kind: 'power',
-    label: 'Bay electrical supply branch',
-    from: 'backplane',
-    to: 'optics',
-    description: 'An electrical branch supplies the installed bay imaging and associated control assembly. Electrical ratings, connector design and protection requirements are not specified by this classroom model.',
-    color: '#667078'
+    id: 'system-power-branch', kind: 'power', label: 'Power this bay’s imaging',
+    technicalLabel: 'Bay imaging electrical branch', from: 'backplane', to: 'optics',
+    description: 'An electrical branch supplies this bay’s camera and white ring-illumination board.',
+    simpleDescription: 'This electrical branch runs the bay camera and ring light.'
   },
   {
-    id: 'cluster-data-link',
-    kind: 'data',
-    label: 'Inter-analyser data link',
-    from: 'backplane',
-    to: 'backplane',
-    via: 'module-coupler',
-    description: 'Two complete analyser units exchange queue and result-status information through the proposed network-coupler interfaces. Each unit retains its own power supply and local dry-air system; this inter-unit connection carries data only, with no specimen or shared pneumatic circulation.',
-    color: '#3c7fa4'
+    id: 'cluster-data-link', kind: 'data', label: 'Link two analyser units',
+    technicalLabel: 'Inter-analyser data link', from: 'backplane', to: 'backplane', via: 'module-coupler',
+    description: 'Two complete analyser units exchange queue and result-status information through a data connection. Each unit retains its own power supply, and every testing bay has local mechanical drives. No specimen circulates between analysers.',
+    simpleDescription: 'The two units share testing information over a data link.'
   },
   {
-    id: 'dock-seal-interface',
-    kind: 'pressure',
-    label: 'Seated dry-port seal',
-    from: 'bay-dock',
-    to: 'dock-seal',
-    description: 'The proposed docking surfaces compress the dry-interface seal around the cartridge actuation ports. The sealing arrangement must be validated before any claim of instrument performance.',
-    color: '#8778b6'
+    id: 'dock-seal-interface', kind: 'pressure', label: 'Seat the dry contact pad',
+    technicalLabel: 'Dock-to-pad positioning', from: 'bay-dock', to: 'dock-seal',
+    description: 'The proposed cartridge dock positions the silicone dry interface pad for contact with the inserted cartridge. The dock and pad are outside the disposable liquid pathways.',
+    simpleDescription: 'The holder positions the pad against the cartridge.'
   },
   {
-    id: 'membrane-actuation',
-    kind: 'pressure',
-    label: 'Isolated membrane actuation',
-    from: 'dock-seal',
-    to: 'cartridge-membrane',
-    description: 'Dry-side actuation is transmitted to the disposable membrane region. The intended specimen-contact flow remains behind the cartridge barrier, not in the reusable valve, manifold or docking block.',
-    color: '#8778b6'
+    id: 'membrane-actuation', kind: 'pressure', label: 'Contact the disposable surface',
+    technicalLabel: 'Dry pad-to-cartridge mechanical interface', from: 'dock-seal', to: 'cartridge-membrane',
+    description: 'The silicone pad contacts the cartridge’s dry external contact surface. The precise internal mechanism requires development; liquids and residual waste remain in the single-use kit.',
+    simpleDescription: 'The dry pad touches the cartridge exterior while liquids stay inside.'
   },
   {
-    id: 'manual-patient-cells',
-    kind: 'manual',
-    label: 'Load patient red-cell aliquot',
-    from: 'patient-cells',
-    to: 'cartridge',
-    description: 'The operator manually loads an identified, prepared recipient red-cell aliquot into its cartridge inlet when the selected assay requires it. The prepared container is not permanently tubed to the analyser.',
-    color: '#8b4a59'
+    id: 'local-driver-data', kind: 'data', label: 'Send movement commands',
+    technicalLabel: 'Bay-local dual motor-driver commands', from: 'processor', to: 'bay-valve',
+    description: 'The controller sends movement commands to the dual motor-driver board in the selected bay. One local driver operates that bay’s two dry linear actuators.',
+    simpleDescription: 'The controller tells this bay’s own drives when to move.'
   },
   {
-    id: 'manual-patient-plasma',
-    kind: 'manual',
-    label: 'Load patient plasma aliquot',
-    from: 'patient-plasma',
-    to: 'cartridge',
-    description: 'The operator manually loads an identified, prepared recipient plasma aliquot into its separate cartridge inlet. This is a specimen fraction, not a transfusion plasma bag or a permanent fluid supply.',
-    color: '#8b4a59'
+    id: 'local-driver-power', kind: 'power', label: 'Power the local movement controller',
+    technicalLabel: 'Bay motor-driver electrical branch', from: 'backplane', to: 'bay-valve',
+    description: 'The electrical distribution supplies the selected bay’s dual motor-driver board and its local actuator pair.',
+    simpleDescription: 'This electrical branch powers the bay’s movement controller.'
   },
   {
-    id: 'manual-donor-cells',
-    kind: 'manual',
-    label: 'Load donor red-cell aliquot',
-    from: 'donor-cells',
-    to: 'cartridge',
-    description: 'The operator manually loads prepared red cells from the selected, traceable donor unit for an indicated crossmatch. The donor aliquot remains separate until its intended reaction with recipient plasma.',
-    color: '#8b4a59'
+    id: 'heater-power', kind: 'power', label: 'Power the bay heater',
+    technicalLabel: 'Switched bay-heater electrical branch', from: 'backplane', to: 'thermal',
+    description: 'Each bay has a heater element and a local heater power switch. The temperature probe provides the corresponding temperature measurement for control and checking.',
+    simpleDescription: 'A controlled electrical supply runs this bay’s heater.'
+  },
+  {
+    id: 'temperature-data', kind: 'data', label: 'Read the bay temperature',
+    technicalLabel: 'Bay temperature-probe measurement', from: 'thermal', to: 'processor',
+    description: 'The selected bay’s temperature probe provides its measured temperature to the controller for assay-environment control and checks.',
+    simpleDescription: 'The controller checks the temperature in this bay.'
+  },
+  {
+    id: 'manual-patient-cells', kind: 'manual', label: 'Load patient red cells',
+    technicalLabel: 'Manual prepared recipient red-cell loading', from: 'patient-cells', to: 'cartridge',
+    description: 'Staff manually load an identified, prepared patient red-cell fraction into its cartridge inlet when the selected test requires it. This container is not permanently connected to the analyser.',
+    simpleDescription: 'Staff load the prepared patient red cells into the cartridge.'
+  },
+  {
+    id: 'manual-patient-plasma', kind: 'manual', label: 'Load patient plasma',
+    technicalLabel: 'Manual prepared recipient plasma loading', from: 'patient-plasma', to: 'cartridge',
+    description: 'Staff manually load the identified patient plasma fraction into its separate cartridge inlet. This is a small prepared specimen fraction, not a transfusion plasma bag.',
+    simpleDescription: 'Staff load the prepared patient plasma into its own inlet.'
+  },
+  {
+    id: 'manual-donor-cells', kind: 'manual', label: 'Load donor red cells',
+    technicalLabel: 'Manual prepared donor red-cell loading', from: 'donor-cells', to: 'cartridge',
+    description: 'Staff manually load prepared red cells from the selected, identified donor unit for a requested crossmatch. These donor cells meet patient plasma only in the intended cartridge reaction.',
+    simpleDescription: 'Staff load the selected donor’s prepared red cells for crossmatching.'
   }
-].map(connection => Object.freeze(connection)));
+].map(connection => Object.freeze({ ...connection, color: CONNECTION_KINDS[connection.kind]?.color || '#8b4a59' })));
 
 /** Return the relationships associated with a selectable component. */
 export function connectionFor(componentId) {
   const id = String(componentId || '').trim();
-  const component = /^bay-\d+$/.test(id) ? 'bays' : id.startsWith('reaction:') ? 'wells' : id;
+  // This old component ID now resolves to the bay-local linear-actuator assembly.
+  const component = /^bay-\d+$/.test(id) ? 'bays' : id.startsWith('reaction:') ? 'wells' : id === 'air-manifold' ? 'pumps' : id;
+  if (component === 'bays') {
+    const bayLinks = new Set(['pressure-dock', 'optical-capture', 'camera-data', 'system-air-supply', 'system-air-branch', 'system-dock-actuation', 'system-data-branch', 'system-power-branch', 'local-driver-data', 'local-driver-power', 'heater-power', 'temperature-data']);
+    return CONNECTIONS.filter(connection => bayLinks.has(connection.id));
+  }
   return CONNECTIONS.filter(connection => connection.from === component || connection.to === component || connection.via === component);
 }
 

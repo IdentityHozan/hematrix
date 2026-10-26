@@ -49,9 +49,9 @@ test('all advertised scenarios have unique IDs and the product has exactly three
   assert.ok(SCENARIOS.length >= 12);
   assert.equal(new Set(SCENARIOS.map((scenario) => scenario.id)).size, SCENARIOS.length);
   assert.deepEqual(Object.keys(CARTRIDGES).sort(), ['complete', 'match', 'type']);
-  assert.equal(CARTRIDGES.type.price, 49);
-  assert.equal(CARTRIDGES.complete.price, 69);
-  assert.equal(CARTRIDGES.match.price, 39);
+  assert.equal(CARTRIDGES.type.price, 59);
+  assert.equal(CARTRIDGES.complete.price, 79);
+  assert.equal(CARTRIDGES.match.price, 49);
 });
 
 test('the simulator begins idle and a completed assay still requires review', () => {

@@ -8,9 +8,9 @@ export const PROPOSED_SPEC = Object.freeze({
 });
 const CONFIGS = [2, 4, 8, 16];
 const FRACTIONS = [
-  { id: 'patient-cells', key: 'patientCells', label: 'Patient red cells', source: 'Identified recipient specimen', description: 'Forward ABO and RhD typing use recipient red cells.' },
-  { id: 'patient-plasma', key: 'patientPlasma', label: 'Patient plasma', source: 'Identified recipient specimen', description: 'Recipient plasma is used for reverse ABO grouping, antibody screening and donor-specific crossmatching as requested.' },
-  { id: 'donor-cells', key: 'donorCells', label: 'Donor red cells', source: 'Identified donor-unit segment', description: 'The selected donor red cells meet recipient plasma in the donor-specific crossmatch.' }
+  { id: 'patient-cells', key: 'patientCells', label: 'Patient red cells', source: 'Identified recipient specimen', description: 'Load the patient’s prepared red-cell sample. It is used to check the blood group.' },
+  { id: 'patient-plasma', key: 'patientPlasma', label: 'Patient plasma', source: 'Identified recipient specimen', description: 'Load the patient’s prepared plasma, the liquid part of the sample. It is used for the required blood-group, antibody and donor checks.' },
+  { id: 'donor-cells', key: 'donorCells', label: 'Donor red cells', source: 'Identified donor-unit segment', description: 'Load prepared red cells from the selected donor unit. These are tested with the patient’s plasma.' }
 ];
 const ok = () => ({ ok: true });
 const fail = reason => ({ ok: false, reason });
@@ -88,7 +88,7 @@ function kitBlock(session) {
 }
 function identityCheck(session) {
   act(session.engine, { type: 'verify' });
-  return session.engine.verified ? '' : 'Patient, specimen and order identifiers do not agree. Retrieve the correct specimen before loading.';
+  return session.engine.verified ? '' : 'The patient, sample and test order IDs do not agree. Retrieve the correct sample before loading.';
 }
 function finishAffectedKit(session) {
   const engine = session.engine;
@@ -108,7 +108,7 @@ export function loadFraction(lab, id) {
   const block = kitBlock(session); if (block) return fail(block);
   if (session.loading.inserted || session.loading.inserting) return fail('The cartridge is seated. Do not add specimens after insertion.');
   const requirement = requirements(session).find(item => item.id === id);
-  if (!requirement.required) return fail(`This specimen fraction is not required for the selected test.`);
+  if (!requirement.required) return fail(`This sample is not required for the selected test.`);
   if (id.startsWith('patient-')) { const identity = identityCheck(session); if (identity) return fail(identity); }
   if (id === 'donor-cells' && !DONORS.some(donor => donor.id === session.engine.donorId)) return fail('Identify a donor unit before loading its red cells.');
   if (session.loading[fraction.key]) return ok();
@@ -124,7 +124,7 @@ export function insertKit(lab) {
   const missing = requirements(session).filter(item => item.required && !item.loaded);
   if (missing.length) return fail(`Load ${missing.map(item => item.label.toLowerCase()).join(' and ')} before inserting the cartridge.`);
   const identity = identityCheck(session); if (identity) return fail(identity);
-  if (session.engine.cartridge === 'match' && !correctPrior(session.engine)) return fail('Match Only requires a valid reviewed patient group and antibody screen.');
+  if (session.engine.cartridge === 'match' && !correctPrior(session.engine)) return fail('Match Only needs valid earlier blood-group and antibody test results approved by laboratory staff.');
   session.loading.inserted = true; session.loading.inserting = false; session.loading.insertionProgress = 1;
   session.kit.status = 'inserted';
   session.engine.audit.push({ time: session.engine.queueClock, elapsed: session.engine.elapsed, event: `${session.kit.id} seated and locked in bay ${session.bay}. Reagents and controls are preloaded.` });
@@ -133,8 +133,8 @@ export function insertKit(lab) {
 export function startBay(lab) {
   const session = selectedSession(lab);
   const block = kitBlock(session); if (block) return fail(block);
-  if (!session.loading.inserted || session.loading.inserting) return fail('Seat the loaded cartridge before starting the test.');
-  if (requirements(session).some(item => item.required && !item.loaded)) return fail('Every required specimen fraction must be loaded.');
+  if (!session.loading.inserted || session.loading.inserting) return fail('Insert the loaded test kit before starting the test.');
+  if (requirements(session).some(item => item.required && !item.loaded)) return fail('Load all required samples before starting.');
   if (session.engine.unavailableBays.includes(session.bay)) return fail(`Bay ${session.bay} is isolated by an instrument fault. Use an unaffected bay.`);
   const identity = identityCheck(session);
   if (identity) { finishAffectedKit(session); return fail(identity); }
@@ -201,7 +201,7 @@ export function unloadKit(lab) {
 export function freshKit(lab) {
   const session = selectedSession(lab);
   if (session.kit.status !== 'removed' && !untouched(session)) return fail('Remove the current cartridge before preparing another single-use kit.');
-  if (session.engine.running) return fail('An active run must finish or be paused and removed first.');
+  if (session.engine.running) return fail('Finish or pause the test, then remove its kit before preparing another.');
   act(session.engine, { type: 'repeat' });
   session.engine.config = lab.config;
   session.loading = emptyLoading(); session.kit = newKit(lab, session.engine.cartridge);
@@ -219,7 +219,7 @@ export function kitSummary(session) {
     readyToInsert: !!readyToInsert, readyToRun: !!readyToRun,
     canUnload: !session.engine.running && !session.loading.inserting && !['fresh', 'removed'].includes(session.kit.status),
     canPrepare: session.kit.status === 'removed' || untouched(session),
-    reason: block || (priorMissing ? 'A valid prior patient workup is required.' : missing.length ? `Load ${missing.map(item => item.label.toLowerCase()).join(' and ')}.` : !session.engine.verified ? 'Verify the linked patient identifiers.' : ''),
+    reason: block || (priorMissing ? 'Valid earlier patient test results are required.' : missing.length ? `Load ${missing.map(item => item.label.toLowerCase()).join(' and ')}.` : !session.engine.verified ? 'Check that the patient, sample and order IDs agree.' : ''),
     loadedCount: required.filter(item => item.loaded).length, requiredCount: required.length,
     wasteContained: session.kit.wasteContained, eligible: canAuthorise(session.engine)
   };

@@ -3,43 +3,300 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { SVGRenderer, SVGObject } from 'three/addons/renderers/SVGRenderer.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { CONNECTIONS } from './connections.js';
+import { describeEvidence } from './demo-model.js';
 export { CONNECTIONS, CONNECTION_KINDS, connectionFor, connectionsFor, DOCK_INTERFACE } from './connections.js';
 
 export const COMPONENTS = [
-  {id:'enclosure',name:'Protective enclosure',does:'Houses the assay, electronics and two independent testing bays.',why:'A compact benchtop body protects the proposed fluidic and optical assemblies.',process:'The Core design target is approximately 45 × 35 × 30 cm and under 18 kg. Neither has been measured on a manufactured instrument.',dimension:'45 × 35 × 30 cm; under 18 kg. Proposed Core design targets; expanded dimensions unverified.'},
-  {id:'screen',name:'Operator touchscreen',does:'Shows specimen identity, bay progress and review status.',why:'The operator must see which cartridge and patient record belong together.',process:'An analytical result enters qualified review; this display does not independently authorise transfusion.'},
-  {id:'bays',name:'Independent cartridge bays',does:'Locates and locks an identified single-use cartridge beneath its optical reader.',why:'Separate test positions let eligible requests begin independently.',process:'Each bay retains its own test state. An isolated bay fault need not interrupt unaffected bays when shared systems remain safe.'},
-  {id:'optics',name:'Camera and illumination assembly',does:'Illuminates the reaction windows and captures their optical pattern.',why:'Controlled imaging makes dispersed, agglutinated and uncertain patterns visible for interpretation.',process:'Image quality and assay controls must pass. Optical clumping alone does not detect every clinically significant antibody.'},
-  {id:'pumps',name:'Metering and fluid-control assembly',does:'Applies controlled pressure to the cartridge interfaces.',why:'Small, repeatable fluid volumes must reach isolated test regions without mixing unrelated reactions.',process:'The sealed single-use cartridge contains the sample-contact path. This proposed geometry illustrates a pressure-driven architecture.'},
-  {id:'processor',name:'Processing and control board',does:'Coordinates timing, bay status, optical capture and the local event record.',why:'All test evidence must remain attached to the correct specimen and donor identifiers.',process:'Local records can remain available during a network outage, while hospital transmission stays pending.'},
-  {id:'power',name:'Power supply',does:'Converts mains input to the internal instrument supply rails.',why:'Optics, control electronics and actuators require stable electrical power.',process:'Portability means relocation between suitably equipped laboratories. The concept still requires electrical power and trained staff.'},
-  {id:'thermal',name:'Thermal-control assembly',does:'Regulates the assay environment when required by the selected detection chemistry.',why:'Temperature and timing can affect reaction reliability.',process:'The operating limits would be established by method validation. An unresolved excursion blocks normal interpretation.'},
-  {id:'structure',name:'Internal support frame',does:'Aligns bays, optics and fluid-control interfaces.',why:'Repeatable positioning keeps each reaction window within the imaging field.',process:'A rigid support chassis separates the assay dock from serviceable electronics.'},
-  {id:'cartridge',name:'Single-use microfluidic cartridge',does:'Contains separate sample, reagent, reaction and waste regions.',why:'The assay route must match the requested Type & Screen, Complete Routine or Match Only scope.',process:'A fresh, identified cartridge is used for one indicated test. After use, the sealed specimen-contact paths and waste remain inside the disposable kit. Reuse is blocked in the demonstration. Geometry and chemistry require development and validation.',specification:'Single-use sealed assay kit; scope-specific reaction regions. No validated cartridge dimensions are specified.'},
-  {id:'inlet',name:'Patient sample inlet',does:'Receives an identified patient specimen.',why:'Recipient red cells support forward grouping; recipient plasma supports reverse grouping, screening and crossmatching.',process:'The conceptual preparation region meters the required fractions into separate routes. Identity checks precede processing.'},
-  {id:'channels',name:'Separated red-cell and plasma routes',does:'Directs metered specimen fractions to their relevant reaction wells.',why:'Typing reagents react with patient red cells; screening and crossmatching use patient plasma.',process:'Red denotes a red-cell route. Amber denotes plasma. Animation follows the modelled channel geometry.'},
-  {id:'reagents',name:'Metered reagent reservoirs',does:'Supplies the selected reagent or reference cells to an isolated test region.',why:'Forward grouping, reverse grouping and screening use different materials.',process:'Assay-specific reagent/reference-cell reservoirs are preloaded into the single-use kit. The operator loads only the required prepared specimen fractions. Lot, expiry and control responses must be acceptable.',specification:'Preloaded, metered, isolated assay reagents; not transfusion products.'},
-  {id:'wells',name:'Reaction and optical windows',does:'Holds each isolated assay reaction for controlled imaging.',why:'A positive Anti-A typing reaction and a reactive donor crossmatch have different meanings.',process:'Typing reactivity supports antigen identification. Crossmatch reactivity requires holding the donor unit and investigating.'},
-  {id:'waste',name:'Sealed waste region',does:'Collects spent sample and reagent within the disposable cartridge.',why:'Waste must remain separate from reagent storage and finished reaction windows.',process:'Spent assay fluid remains in the sealed single-use kit. A used cartridge cannot be refilled or reused. The proposed containment geometry still requires validation.',specification:'Sealed post-assay waste; disposable cartridge lifecycle.'},
-  {id:'patient-cells',name:'Patient red-cell fraction',does:'Supplies prepared recipient red cells to forward ABO and RhD typing.',why:'Patient red cells are required to test for A, B and D antigen reactions.',process:'This is a prepared specimen fraction. It remains separate from recipient plasma and donor red cells until its own indicated reactions. It is not a transfusion component.',specification:'Required for Type & Screen and Complete Routine; omitted from Match Only.'},
-  {id:'patient-plasma',name:'Patient plasma fraction',does:'Supplies prepared recipient plasma to reverse grouping, antibody screening and indicated crossmatching.',why:'Recipient antibodies are assessed using the appropriate reagent cells or selected donor red cells.',process:'This small prepared specimen fraction is not a transfusion plasma bag. Its gold pathway remains separate from the patient-cell route.',specification:'Required by all three demonstrated cartridge scopes.'},
-  {id:'donor-cells',name:'Donor red-cell fraction',does:'Supplies prepared red cells from the selected, identified donor unit.',why:'Donor-specific crossmatching combines recipient plasma with these donor cells in the crossmatch chamber.',process:'Donor red cells remain in their isolated red route until the intended crossmatch reaction. Matching ABO/RhD labels alone do not establish compatibility.',specification:'Required for Complete Routine and Match Only; omitted from Type & Screen.'},
-  {id:'backplane',name:'Rear electrical backplane',view:'inside',does:'Carries local power distribution and bay communication along the Core and expansion modules.',why:'Each installed bay needs traceable control and image-data connections to its own unit.',process:'Keyed module join connectors bridge the proposed backplane segments. Each complete unit retains its own power supply; linked units exchange data only.',specification:'Proposed connection layout; no connector part number or electrical rating is claimed.'},
-  {id:'air-manifold',name:'Local dry-air manifold',view:'inside',does:'Distributes controlled dry air from one Core fluid-control assembly to individual bay valves.',why:'Bay valves meter actuation locally while the disposable cartridge retains specimen-contact fluid.',process:'The manifold contains no blood or plasma. Core air and power remain shared failure points within one unit; local valves do not establish validated fault isolation.',specification:'Proposed pneumatic actuation architecture; no pressure or flow rating is specified.'},
-  {id:'module-coupler',name:'Expansion-module couplers',view:'inside',does:'Joins the rear dry-air, power and data interfaces between the Core and its expansion modules.',why:'Visible keyed mating connections explain how attached testing bays receive services.',process:'Within a unit, dry-air and electrical joiners bridge module interfaces. Between two complete units, the illustrated link carries data only; air and power remain local.'},
-  {id:'bay-valve',name:'Local bay valve',view:'dock',does:'Controls the proposed dry-air actuation path to one identified cartridge dock.',why:'Local control lets bays follow their own assay sequences.',process:'Dry air terminates on the dry side of the cartridge membrane. Specimen fractions remain in the disposable wet path. Individual control is a design premise, not a proven isolation guarantee.'},
-  {id:'bay-dock',name:'Cartridge docking interface',view:'dock',does:'Locates the cartridge on guide rails, engages its stop and lock, and aligns dry-air and optical interfaces.',why:'Reproducible positioning connects the proposed actuation and imaging paths to the correct bay.',process:'Fit the inspection faces to see their matching positions. This inspection movement does not load, run or alter a live assay.'},
-  {id:'dock-seal',name:'Dry-air mating seals',view:'dock',does:'Forms the proposed sealed connection between reusable air nozzles and the cartridge-side sockets.',why:'Air pressure transfers through the sealed interface into the cartridge’s dry actuation pocket.',process:'The matching gasket faces close around two dry-air ports. These proposed seals do not carry blood, plasma or donor cells.'},
-  {id:'cartridge-membrane',name:'Cartridge actuation membrane',view:'dock',does:'Separates the proposed dry-air actuation chamber from the disposable specimen-contact region.',why:'Air-side actuation can be demonstrated without connecting the reusable manifold to blood channels.',process:'The air pocket ends at the dry side of the membrane. Separate wet channels remain inside the sealed single-use cartridge. Material, sealing and assay performance require development and validation.'},
-  {id:'donor',name:'Identified donor-unit inlet',does:'Routes donor red cells to the donor-specific crossmatch chamber.',why:'A matching ABO/RhD label does not by itself establish donor-unit compatibility.',process:'Recipient plasma is tested against red cells from the selected, traceable donor unit.'}
+  {
+    "id": "enclosure",
+    "name": "Protective enclosure",
+    "does": "Houses the assay, electronics and two independent testing bays.",
+    "why": "A compact benchtop body protects the proposed fluidic and optical assemblies.",
+    "process": "The Core design target is approximately 45 × 35 × 30 cm and under 18 kg. Neither has been measured on a manufactured instrument.",
+    "dimension": "45 × 35 × 30 cm; under 18 kg. Proposed Core design targets; expanded dimensions unverified.",
+    "simpleName": "Machine body",
+    "simpleDoes": "Protects the testing bays and electronics."
+  },
+  {
+    "id": "screen",
+    "name": "Operator touchscreen",
+    "does": "Shows specimen identity, bay progress and review status.",
+    "why": "The operator must see which cartridge and patient record belong together.",
+    "process": "An analytical result enters qualified review; this display does not independently authorise transfusion.",
+    "simpleName": "Screen",
+    "simpleDoes": "Shows progress, results and review status."
+  },
+  {
+    "id": "bays",
+    "name": "Independent cartridge bays",
+    "does": "Locates and locks an identified single-use cartridge beneath its optical reader.",
+    "why": "Separate test positions let eligible requests begin independently.",
+    "process": "Each bay has its own camera, light, two mechanical actuators, motor driver, heater and temperature probe. Shared reader power and electronics remain relevant system dependencies.",
+    "simpleName": "Testing bays",
+    "simpleDoes": "Each bay holds a separate kit for one test."
+  },
+  {
+    "id": "optics",
+    "name": "Camera and illumination assembly",
+    "does": "Illuminates the reaction windows and captures their optical pattern.",
+    "why": "Controlled imaging makes dispersed, agglutinated and uncertain patterns visible for interpretation.",
+    "process": "Image quality and assay controls must pass. Optical clumping alone does not detect every clinically significant antibody.",
+    "simpleName": "Camera and light",
+    "simpleDoes": "Lights the test chambers and records their reactions."
+  },
+  {
+    "id": "pumps",
+    "name": "Dry linear actuators",
+    "does": "Two local linear actuators operate one bay’s cartridge mechanisms through dry contact pads.",
+    "why": "Each bay needs its own controlled mechanical movement.",
+    "process": "Appendix A2 lists two dry linear actuators and one dual motor driver for each bay. The motors act through the silicone dry interface pad; specimen and reagent liquids remain inside the disposable cartridge.",
+    "view": "dock",
+    "simpleName": "Small motors",
+    "simpleDoes": "Two small motors operate the kit through dry contact pads."
+  },
+  {
+    "id": "processor",
+    "name": "Processing and control board",
+    "does": "Coordinates timing, bay status, optical capture and the local event record.",
+    "why": "All test evidence must remain attached to the correct specimen and donor identifiers.",
+    "process": "Local records can remain available during a network outage, while hospital transmission stays pending.",
+    "simpleName": "Computer board",
+    "simpleDoes": "Keeps each image and result linked to the correct sample."
+  },
+  {
+    "id": "power",
+    "name": "Power supply",
+    "does": "Converts mains input to the internal instrument supply rails.",
+    "why": "Optics, control electronics and actuators require stable electrical power.",
+    "process": "Portability means relocation between suitably equipped laboratories. The concept still requires electrical power and trained staff.",
+    "simpleName": "Power supply",
+    "simpleDoes": "Supplies electricity to this reader and its bays."
+  },
+  {
+    "id": "thermal",
+    "name": "Core cooling fan",
+    "does": "Circulates air around the shared reader electronics.",
+    "why": "The reusable electronics need suitable operating conditions.",
+    "process": "The shared build lists a cooling fan. Each bay separately contains its own heater, temperature probe and heater power switch.",
+    "simpleName": "Cooling fan",
+    "simpleDoes": "Moves air around the reader electronics."
+  },
+  {
+    "id": "structure",
+    "name": "Internal support frame",
+    "does": "Aligns bays, optics and fluid-control interfaces.",
+    "why": "Repeatable positioning keeps each reaction window within the imaging field.",
+    "process": "A rigid support chassis separates the assay dock from serviceable electronics.",
+    "simpleName": "Support frame",
+    "simpleDoes": "Keeps the kit, camera and other parts in place."
+  },
+  {
+    "id": "cartridge",
+    "name": "Single-use microfluidic cartridge",
+    "does": "Contains separate sample, reagent, reaction and waste regions.",
+    "why": "The assay route must match the requested Type & Screen, Complete Routine or Match Only scope.",
+    "process": "A fresh, identified cartridge is used for one indicated test. After use, the sealed specimen-contact paths and waste remain inside the disposable kit. Reuse is blocked in the demonstration. Geometry and chemistry require development and validation.",
+    "specification": "Single-use sealed assay kit; scope-specific reaction regions. No validated cartridge dimensions are specified.",
+    "simpleName": "Single-use kit",
+    "simpleDoes": "Holds the samples, test materials, liquid paths and waste."
+  },
+  {
+    "id": "inlet",
+    "name": "Patient sample inlet",
+    "does": "Receives an identified patient specimen.",
+    "why": "Recipient red cells support forward grouping; recipient plasma supports reverse grouping, screening and crossmatching.",
+    "process": "Existing laboratory equipment prepares the separate patient red-cell and plasma fractions. Staff identify and load them into the selected kit.",
+    "simpleName": "Sample inlet",
+    "simpleDoes": "Receives the identified, prepared sample."
+  },
+  {
+    "id": "channels",
+    "name": "Separated red-cell and plasma routes",
+    "does": "Directs metered specimen fractions to their relevant reaction wells.",
+    "why": "Typing reagents react with patient red cells; screening and crossmatching use patient plasma.",
+    "process": "Red denotes a red-cell route. Amber denotes plasma. Animation follows the modelled channel geometry.",
+    "simpleName": "Liquid paths",
+    "simpleDoes": "Keeps each sample on its required route inside the kit."
+  },
+  {
+    "id": "reagents",
+    "name": "Metered reagent reservoirs",
+    "does": "Supplies the selected reagent or reference cells to an isolated test region.",
+    "why": "Forward grouping, reverse grouping and screening use different materials.",
+    "process": "Assay-specific reagent/reference-cell reservoirs are preloaded into the single-use kit. The operator loads only the required prepared specimen fractions. Lot, expiry and control responses must be acceptable.",
+    "specification": "Preloaded, metered, isolated assay reagents; not transfusion products.",
+    "simpleName": "Test materials",
+    "simpleDoes": "Contains the materials needed for each reaction."
+  },
+  {
+    "id": "wells",
+    "name": "Reaction and optical windows",
+    "does": "Holds each isolated assay reaction for controlled imaging.",
+    "why": "A positive Anti-A typing reaction and a reactive donor crossmatch have different meanings.",
+    "process": "Typing reactivity supports antigen identification. Crossmatch reactivity requires holding the donor unit and investigating.",
+    "simpleName": "Test chambers",
+    "simpleDoes": "Holds the reactions that the camera records."
+  },
+  {
+    "id": "waste",
+    "name": "Sealed waste region",
+    "does": "Collects spent sample and reagent within the disposable cartridge.",
+    "why": "Waste must remain separate from reagent storage and finished reaction windows.",
+    "process": "Spent assay fluid remains in the sealed single-use kit. A used cartridge cannot be refilled or reused. The proposed containment geometry still requires validation.",
+    "specification": "Sealed post-assay waste; disposable cartridge lifecycle.",
+    "simpleName": "Used liquid",
+    "simpleDoes": "Keeps leftover liquid sealed inside the used kit."
+  },
+  {
+    "id": "patient-cells",
+    "name": "Patient red-cell fraction",
+    "does": "Supplies prepared recipient red cells to forward ABO and RhD typing.",
+    "why": "Patient red cells are required to test for A, B and D antigen reactions.",
+    "process": "This is a prepared specimen fraction. It remains separate from recipient plasma and donor red cells until its own indicated reactions. It is not a transfusion component.",
+    "specification": "Required for Type & Screen and Complete Routine; omitted from Match Only.",
+    "simpleName": "Patient red cells",
+    "simpleDoes": "Used to check the patient’s main blood-group markers."
+  },
+  {
+    "id": "patient-plasma",
+    "name": "Patient plasma fraction",
+    "does": "Supplies prepared recipient plasma to reverse grouping, antibody screening and indicated crossmatching.",
+    "why": "Recipient antibodies are assessed using the appropriate reagent cells or selected donor red cells.",
+    "process": "This small prepared specimen fraction is not a transfusion plasma bag. Its gold pathway remains separate from the patient-cell route.",
+    "specification": "Required by all three demonstrated cartridge scopes.",
+    "simpleName": "Patient plasma",
+    "simpleDoes": "Used to check antibodies and a selected donor when requested."
+  },
+  {
+    "id": "donor-cells",
+    "name": "Donor red-cell fraction",
+    "does": "Supplies prepared red cells from the selected, identified donor unit.",
+    "why": "Donor-specific crossmatching combines recipient plasma with these donor cells in the crossmatch chamber.",
+    "process": "Donor red cells remain in their isolated red route until the intended crossmatch reaction. Matching ABO/RhD labels alone do not establish compatibility.",
+    "specification": "Required for Complete Routine and Match Only; omitted from Type & Screen.",
+    "simpleName": "Donor red cells",
+    "simpleDoes": "Used to check the selected donor against the patient’s plasma."
+  },
+  {
+    "id": "backplane",
+    "name": "Power and data backplane",
+    "view": "inside",
+    "does": "Carries electrical power and communication between the Core and its installed bays.",
+    "why": "Each local motor driver, heater and camera needs the appropriate electrical connection.",
+    "process": "Keyed electrical couplers link expansion bays within one reader. Each complete reader retains its own power supply; two readers exchange data only.",
+    "specification": "Proposed connection layout; no connector part number or electrical rating is claimed.",
+    "simpleName": "Power and data board",
+    "simpleDoes": "Connects each bay to the reader’s electricity and computer."
+  },
+  {
+    "id": "air-manifold",
+    "name": "Local actuator support",
+    "view": "inside",
+    "does": "Positions two dry mechanical actuators within one testing bay.",
+    "why": "The actuator heads must align with that bay’s dry cartridge contact surfaces.",
+    "process": "This support carries local mechanical hardware. The rear interconnect carries power and data; cartridge liquids remain in the single-use wet path.",
+    "specification": "Local dry mechanical layout based on the updated product bill of materials.",
+    "simpleName": "Motor support",
+    "simpleDoes": "Holds the two small motors inside one bay."
+  },
+  {
+    "id": "module-coupler",
+    "name": "Expansion power and data couplers",
+    "view": "inside",
+    "does": "Joins the electrical interfaces between the Core and added bay modules.",
+    "why": "The added bays need power and communication links.",
+    "process": "The couplers connect power and data within one reader. A separate data cable connects two complete readers, each with its own power supply.",
+    "simpleName": "Expansion plugs",
+    "simpleDoes": "Connects power and data when more bays are added."
+  },
+  {
+    "id": "bay-valve",
+    "name": "Dual motor-driver board",
+    "view": "dock",
+    "does": "Controls the two dry linear actuators in one bay.",
+    "why": "The bay’s cartridge mechanism needs controlled local movement.",
+    "process": "Appendix A2 specifies one dual motor driver and two dry linear actuators per bay. Control and power reach the board electrically.",
+    "simpleName": "Motor control",
+    "simpleDoes": "Controls the two small motors in one bay."
+  },
+  {
+    "id": "bay-dock",
+    "name": "Cartridge dock and guide rails",
+    "view": "dock",
+    "does": "Locates and locks the cartridge, aligning its dry contact surfaces and optical windows.",
+    "why": "The actuator pads, heater and camera must meet the intended kit positions.",
+    "process": "The locating stop and insertion switches support positioning checks. Fitting the inspection model does not load, run or change an assay.",
+    "simpleName": "Kit holder",
+    "simpleDoes": "Guides the kit into place and locks it for testing."
+  },
+  {
+    "id": "dock-seal",
+    "name": "Silicone dry interface pad",
+    "view": "dock",
+    "does": "Transfers local actuator movement to the cartridge contact surface.",
+    "why": "A dry contact interface keeps the reusable drive separate from the specimen-contact paths.",
+    "process": "The updated bill of materials lists a silicone dry interface pad for each bay. The flat contact pad meets the kit surface during inspection fitting.",
+    "simpleName": "Soft contact pad",
+    "simpleDoes": "Passes the motor’s movement to the kit through a dry surface."
+  },
+  {
+    "id": "cartridge-membrane",
+    "name": "Sealed cartridge contact surface",
+    "view": "dock",
+    "does": "Receives dry mechanical contact from the bay’s actuator pad.",
+    "why": "The bay must operate the cartridge mechanism while its liquid paths stay disposable.",
+    "process": "The contact surface is part of the sealed kit. Mechanical actuation is illustrated as a proposed layout; the detailed internal cartridge mechanism remains an engineering-development task.",
+    "simpleName": "Kit contact surface",
+    "simpleDoes": "Receives the motor’s movement while liquids stay inside the kit."
+  },
+  {
+    "id": "donor",
+    "name": "Identified donor-unit inlet",
+    "does": "Routes donor red cells to the donor-specific crossmatch chamber.",
+    "why": "A matching ABO/RhD label does not by itself establish donor-unit compatibility.",
+    "process": "Recipient plasma is tested against red cells from the selected, traceable donor unit.",
+    "simpleName": "Donor sample inlet",
+    "simpleDoes": "Receives prepared cells from the selected donor unit."
+  },
+  {
+    "id": "heater",
+    "name": "Bay heating element",
+    "simpleName": "Heater",
+    "does": "Controls the kit’s temperature for the selected test.",
+    "simpleDoes": "Controls the kit’s temperature for the selected test.",
+    "why": "The assay requires appropriate controlled conditions.",
+    "process": "Appendix A2 lists one heater and a heater power switch per bay. Operating limits depend on the developed assay method.",
+    "view": "dock"
+  },
+  {
+    "id": "temperature-probe",
+    "name": "Bay temperature probe",
+    "simpleName": "Temperature sensor",
+    "does": "Measures the temperature near the kit.",
+    "simpleDoes": "Measures the temperature near the kit.",
+    "why": "The software needs temperature feedback to check the heating conditions.",
+    "process": "Appendix A2 lists a temperature probe for every bay. No measured temperature accuracy is claimed.",
+    "view": "dock"
+  },
+  {
+    "id": "limit-switch",
+    "name": "Cartridge insertion limit switches",
+    "simpleName": "Kit position switches",
+    "does": "Checks whether the kit has reached its intended dock positions.",
+    "simpleDoes": "Checks whether the kit has reached its intended dock positions.",
+    "why": "The drive and camera should operate on a correctly positioned kit.",
+    "process": "Appendix A2 lists two insertion limit switches per bay. This model illustrates their placement, not validated detection performance.",
+    "view": "dock"
+  }
 ];
 
 const P = {shell:0xe9e8e3, light:0xfaf9f6, burgundy:0x7d2435, dark:0x24282b, metal:0xb6bdc0, red:0x94152b, amber:0xb47808, green:0x527a69, blue:0x7394a7};
+const WELL_IDS={'Anti-A':'anti-a','Anti-B':'anti-b','Anti-D':'anti-d','A1 cells':'reverse-a1','B cells':'reverse-b','Screen I':'screen-i','Screen II':'screen-ii','Screen III':'screen-iii','Crossmatch':'crossmatch','Control +':'positive-control','Control −':'negative-control'};
 const comp = id => COMPONENTS.find(c=>c.id===id);
 
 export class ProductViewer {
   constructor(container, {onSelect=()=>{}}={}) {
-    this.container=container; this.onSelect=onSelect; this.state={config:2,elapsed:0,running:false,stage:0,cartridge:'complete',mode:'device',exploded:false,cutaway:false,flow:false,activeBays:[],selectedBay:1,sampleLoaded:false,inserted:false,insertionProgress:0,loadedFractions:{patientCells:false,patientPlasma:false,donorCells:false},bayStates:[],showDimensions:false,kitUsed:false,showConnections:false,connectionKind:null,connectionScope:'system',dockSeparated:true};
+    this.container=container; this.onSelect=onSelect; this.state={config:2,elapsed:0,running:false,stage:0,cartridge:'complete',mode:'device',exploded:false,cutaway:false,flow:false,activeBays:[],selectedBay:1,sampleLoaded:false,inserted:false,insertionProgress:0,loadedFractions:{patientCells:false,patientPlasma:false,donorCells:false},bayStates:[],showDimensions:false,kitUsed:false,showConnections:false,connectionKind:null,connectionScope:'system',dockSeparated:true,explanationMode:false};
     this.parts=[]; this.flows=[]; this.bayLamps=[]; this.selectables=[]; this.reactionWells=[]; this.loadedCartridges=[]; this.sampleTubes=[]; this.patientInlets=[]; this.screens=[]; this.loadingTrays=[]; this.labelPoints=[]; this.wasteRegions=[]; this.bayAnchors=[]; this.deviceUnits=[]; this.corePorts=[]; this.bayPorts=new Map(); this.connectionEdges=[]; this.inspectionCovers=[]; this.systemUnits=[]; this.systemEdges=[]; this.dockInspection=null; this.textures=[]; this.logoTexture=null; this.disposed=false;
     this.raycaster=new THREE.Raycaster(); this.pointer=new THREE.Vector2(); this.clock=new THREE.Clock();
     const canvas=document.createElement('canvas');let context=null;
@@ -97,11 +354,11 @@ export class ProductViewer {
     const width=.5,height=width*788/665;
     if(this.software){
       const node=document.createElementNS('http://www.w3.org/2000/svg','g'),picture=document.createElementNS('http://www.w3.org/2000/svg','image');
-      picture.setAttribute('href','/assets/hematrix-logo.svg');picture.setAttributeNS('http://www.w3.org/1999/xlink','xlink:href','/assets/hematrix-logo.svg');picture.setAttribute('x','0');picture.setAttribute('y','0');picture.setAttribute('width','1');picture.setAttribute('height','1');picture.setAttribute('preserveAspectRatio','none');picture.style.pointerEvents='none';node.appendChild(picture);
+      picture.setAttribute('href',`${import.meta.env.BASE_URL}assets/hematrix-logo.svg`);picture.setAttributeNS('http://www.w3.org/1999/xlink','xlink:href',`${import.meta.env.BASE_URL}assets/hematrix-logo.svg`);picture.setAttribute('x','0');picture.setAttribute('y','0');picture.setAttribute('width','1');picture.setAttribute('height','1');picture.setAttribute('preserveAspectRatio','none');picture.style.pointerEvents='none';node.appendChild(picture);
       const logo=new SVGObject(node);logo.position.set(...position);logo.userData.logoImage=picture;logo.userData.logoSize={width,height};logo.userData.labelNormal=new THREE.Vector3(0,0,1);parent.add(logo);return logo;
     }
     if(!this.logoTexture){
-      const texture=new THREE.TextureLoader().load('/assets/hematrix-logo.png',loaded=>{if(this.disposed)loaded.dispose();});texture.colorSpace=THREE.SRGBColorSpace;
+      const texture=new THREE.TextureLoader().load(`${import.meta.env.BASE_URL}assets/hematrix-logo.png`,loaded=>{if(this.disposed)loaded.dispose();});texture.colorSpace=THREE.SRGBColorSpace;
       // Use the exact supplied PNG pixels, cropped to the same 665 × 788 viewBox as the SVG.
       texture.repeat.set(665/2048,788/1535);texture.offset.set(154/2048,(1535-89-788)/1535);this.logoTexture=texture;
     }
@@ -204,13 +461,6 @@ export class ProductViewer {
       this.box(optics,[.7,.38,.68],[x,1.83,.04],0x3e484d,'optics',.035);
       const lens=this.cylinder(optics,.2,.18,[x,1.56,.04],0x1f2529,'optics');
       this.cylinder(optics,.13,.035,[x,1.45,.04],0x8eb7c5,'optics',{metalness:.6,roughness:.1});
-      for(const z of [-.45,.53])this.box(optics,[1.05,.035,.12],[x,1.43,z],0xf1ead1,'optics',.015,{emissive:0xf3dfb4,emissiveIntensity:.4});
-    }
-    const pump=this.part(parent,'pumps',[-.3,.25,-1.1]);
-    for(let i=0;i<3;i++){
-      this.cylinder(pump,.17,.55,[-.95+i*.62,1.18,-1.1],0xc4cacc,'pumps');
-      this.box(pump,[.42,.35,.34],[-.95+i*.62,.8,-1.1],0x626c72,'pumps',.025);
-      this.tube(pump,[[-.95+i*.62,1.47,-1.1],[-.95+i*.62,1.65,-.8],[-.7+i*.55,1.35,-.4]],.032,0xaab8bc,'pumps',.75);
     }
     const board=this.part(parent,'processor',[1.15,.4,-.55]);
     this.box(board,[.11,1.45,1.65],[1.86,1.54,-.44],0x315f50,'processor',.02);
@@ -218,10 +468,13 @@ export class ProductViewer {
     for(let i=0;i<4;i++)this.box(board,[.11,.1,.22],[1.76,1.2+i*.2,-.88],0xd2bc7e,'processor',.005);
     const power=this.part(parent,'power',[-1,.25,-.3]);this.box(power,[.58,1.35,1.5],[-1.67,1.35,-.45],0xaeb5b6,'power',.03);
     for(let i=0;i<7;i++)this.box(power,[.025,.45,.045],[-1.985,1.65,-.95+i*.16],0x606b71,'power',.003);
-    const thermal=this.part(parent,'thermal',[0,.55,-.9]);this.box(thermal,[2.5,.14,.48],[0,2.57,-1.07],0x9ba5a8,'thermal',.02);
-    for(let i=0;i<14;i++)this.box(thermal,[.05,.22,.43],[-1.1+i*.17,2.72,-1.07],0xa6b0b3,'thermal',.005);
-    this.corePorts[this.buildingUnit]={frameParts:[chassis,display,optics,pump,board,power,thermal],displayAssembly:display,pump:this.port(pump,[-.95,1.46,-1.1]),pumpPower:this.port(pump,[-.65,.85,-1.27]),processorData:this.port(board,[1.78,1.85,-.38]),processorPower:this.port(board,[1.78,1.14,-.68]),screen:this.port(display,[-.45,2.2,1.69]),power:this.port(power,[-1.36,1.25,-.45])};
-    for(const [object,id,name,pos] of [[chassis,'structure','Internal support frame',[0,.42,0]],[optics,'optics','Camera and illumination',[0,1.9,.05]],[pump,'pumps','Fluid-control assembly',[0,1.25,-1.1]],[board,'processor','Processing board',[1.85,1.6,-.4]],[power,'power','Power supply',[-1.65,1.4,-.4]],[thermal,'thermal','Thermal control',[0,2.7,-1.07]]])this.addLabel(object,id,name,pos,{internal:true});
+    const thermal=this.part(parent,'thermal',[0,.35,-.35]);
+    this.box(thermal,[.84,.84,.12],[0,2.18,-1.47],0x53636b,'thermal',.035);
+    const fan=this.cylinder(thermal,.32,.04,[0,2.18,-1.395],0x293940,'thermal');fan.rotation.x=Math.PI/2;
+    for(let index=0;index<4;index++){const blade=this.box(thermal,[.11,.36,.025],[Math.sin(index*Math.PI/2)*.14,2.18+Math.cos(index*Math.PI/2)*.14,-1.365],0x9aabb1,'thermal',.01);blade.rotation.z=-index*Math.PI/2+.35;}
+    this.corePorts[this.buildingUnit]={frameParts:[chassis,display,optics,board,power,thermal],displayAssembly:display,processorData:this.port(board,[1.78,1.85,-.38]),processorPower:this.port(board,[1.78,1.14,-.68]),screen:this.port(display,[-.45,2.2,1.69]),power:this.port(power,[-1.36,1.25,-.45])};
+    for(const [object,id,name,pos] of [[chassis,'structure','Internal support frame',[0,.42,0]],[optics,'optics','Camera and ring illumination',[0,1.9,.05]],[board,'processor','Processing board',[1.85,1.6,-.4]],[power,'power','Power supply',[-1.65,1.4,-.4]],[thermal,'thermal','Core cooling fan',[0,2.4,-1.4]]])this.addLabel(object,id,name,pos,{internal:true});
+
   }
   buildModule(parent,x,bayStart){
     const body=this.part(parent,'bays',[.35,0,.2]);
@@ -232,7 +485,7 @@ export class ProductViewer {
       const fascia=this.box(bayBody,[1.29,.73,.075],[x,y,1.71],P.dark,'bays',.025);this.inspectionCovers.push(fascia);
       this.box(bayBody,[1.13,.065,1.95],[x,y-.23,.69],0x6f797d,'bays',.012);
       const cartridge=new THREE.Group();cartridge.position.set(x,y-.2,.94);cartridge.scale.setScalar(.245);cartridge.rotation.y=Math.PI/2;bayBody.add(cartridge);const scope=this.scopeForBay(bayId);this.loadedCartridges.push({object:cartridge,origin:cartridge.position.clone(),bay:bayId,scope});this.buildingBay=bayId;this.buildCartridge(cartridge,scope,true);this.buildingBay=null;
-      const opticalHead=this.part(bayBody,'optics',[0,.36,-.08]);this.box(opticalHead,[.38,.27,.42],[x,y+.29,.94],0x3b4950,'optics',.025);this.cylinder(opticalHead,.1,.13,[x,y+.09,.94],0x29353c,'optics');this.cylinder(opticalHead,.074,.025,[x,y+.015,.94],0x78a1b2,'optics',{roughness:.1});for(const side of [-1,1])this.box(opticalHead,[.1,.035,.56],[x+side*.36,y+.02,.94],0xeee4ba,'optics',.01);const ports=this.bayPorts.get(bayId);ports.optical=this.port(opticalHead,[x,y,.94]);ports.cameraData=this.port(opticalHead,[x+.19,y+.29,.85]);ports.cameraPower=this.port(opticalHead,[x-.19,y+.29,.85]);
+      const opticalHead=this.part(bayBody,'optics',[0,.36,-.08]);this.box(opticalHead,[.38,.27,.42],[x,y+.29,.94],0x3b4950,'optics',.025);this.cylinder(opticalHead,.1,.13,[x,y+.09,.94],0x29353c,'optics');this.cylinder(opticalHead,.074,.025,[x,y+.015,.94],0x78a1b2,'optics',{roughness:.1});const ports=this.bayPorts.get(bayId);ports.optical=this.port(opticalHead,[x,y,.94]);ports.cameraData=this.port(opticalHead,[x+.19,y+.29,.85]);ports.cameraPower=this.port(opticalHead,[x-.19,y+.29,.85]);
       this.text(bayBody,`BAY ${bayStart+b+1}`,[x,y+.14,1.76],{width:.83,height:.15,size:42,color:'#e4e7e4'});
       const lamp=this.box(bayBody,[.26,.04,.025],[x,y-.19,1.77],P.green,'bays',.008);this.bayLamps.push({mesh:lamp,index:bayStart+b});
     }
@@ -258,7 +511,7 @@ export class ProductViewer {
     this.root.updateMatrixWorld(true);const record=this.bayState(selected),inserted=record?.inserted??this.state.inserted;
     const window=inserted&&record?.kitPresent!==false&&bay.reaction?bay.reaction:bay.dockingWindow;
     const point=object=>object?.getWorldPosition(new THREE.Vector3());
-    return {'pressure-dock':[point(core.pump),point(bay.pressure)],'optical-capture':[point(window),point(bay.optical)],'camera-data':[point(bay.cameraData),point(core.processorData)],'display-data':[point(core.processorData),point(core.screen)],'power-processor':[point(core.power),point(core.processorPower)],'power-optics':[point(core.power),point(bay.cameraPower)],'power-control':[point(core.power),point(core.pumpPower)]};
+    return {'pressure-dock':[point(bay.actuatorFaces?.[0]),point(bay.padPorts?.[0])],'optical-capture':[point(window),point(bay.optical)],'camera-data':[point(bay.cameraData),point(core.processorData)],'display-data':[point(core.processorData),point(core.screen)],'power-processor':[point(core.power),point(core.processorPower)],'power-optics':[point(core.power),point(bay.cameraPower)],'power-control':[point(core.power),point(bay.driverPower)]};
   }
   buildConnectionLayer(){
     this.connectionLayer=new THREE.Group();this.connectionLayer.visible=false;this.root.add(this.connectionLayer);
@@ -273,7 +526,7 @@ export class ProductViewer {
     }
   }
   connectionCurve(metadata,from,to){
-    if(metadata.kind==='optical')return new THREE.LineCurve3(from.clone(),to.clone());
+    if(metadata.kind==='optical'||metadata.kind==='pressure')return new THREE.LineCurve3(from.clone(),to.clone());
     const a=from.clone(),b=to.clone();let points;
     if(metadata.kind==='pressure'){
       const rear=Math.min(a.z,b.z)-.35;points=[a,new THREE.Vector3(a.x,a.y+.12,rear),new THREE.Vector3(b.x,b.y+.12,rear),b];
@@ -287,42 +540,56 @@ export class ProductViewer {
   updateConnections(){
     if(!this.connectionLayer)return;
     const show=!!this.state.showConnections&&this.state.mode==='device'&&!!this.state.cutaway;
-    // Both scopes follow the physical manifold and backplane. The selected scope narrows the visible branches.
+    // Both scopes show the electrical backplane and local mechanical drives. The selected scope narrows the visible branches.
     this.connectionLayer.visible=false;this.updateSystemConnections(show);
   }
 
   connectionAnchors(){
-    if(this.systemLayer?.visible)return this.systemEdges.filter(edge=>edge.curve).map(edge=>{const point=this.projectPoint(edge.curve.getPoint(.5));return {...edge.metadata,id:edge.id,x:point.x,y:point.y,visible:edge.group.visible&&point.visible,bay:edge.bay};});if(!this.connectionLayer?.visible)return [];this.camera.updateMatrixWorld(true);return this.connectionEdges.filter(edge=>edge.curve).map(edge=>{const point=this.projectPoint(edge.curve.getPoint(.52));return {...edge.metadata,x:point.x,y:point.y,visible:edge.group.visible&&point.visible};});
+    if(this.systemLayer?.visible)return this.systemEdges.filter(edge=>edge.curve).map(edge=>{const point=this.projectPoint(edge.curve.getPoint(.5));return {...edge.metadata,label:this.state.explanationMode?(edge.metadata.technicalLabel||edge.metadata.label):edge.metadata.label,id:edge.id,x:point.x,y:point.y,visible:edge.group.visible&&point.visible,bay:edge.bay};});if(!this.connectionLayer?.visible)return [];this.camera.updateMatrixWorld(true);return this.connectionEdges.filter(edge=>edge.curve).map(edge=>{const point=this.projectPoint(edge.curve.getPoint(.52));return {...edge.metadata,label:this.state.explanationMode?(edge.metadata.technicalLabel||edge.metadata.label):edge.metadata.label,x:point.x,y:point.y,visible:edge.group.visible&&point.visible};});
+  }
+  buildLocalBayHardware(bayId){
+    const bay=this.bayPorts.get(bayId),kit=this.loadedCartridges.find(item=>item.bay===bayId);if(!bay||!kit)return;
+    const parent=bay.pressure.parent,s=kit.object.scale.x,x=kit.origin.x,y=kit.origin.y+.24*s,contactZ=kit.origin.z-2.55*s;
+    const mount=this.part(parent,'air-manifold',[0,.03,-.03]),actuators=this.part(parent,'pumps',[0,.06,-.04]),driver=this.part(parent,'bay-valve',[0,.08,-.06]),pads=this.part(parent,'dock-seal');
+    this.box(mount,[.48,.065,.46],[x,y-.12,contactZ-.28],0x8b9ca2,'air-manifold',.018);
+    this.box(driver,[.27,.045,.28],[x-.34,y+.10,contactZ-.33],0x315e52,'bay-valve',.012);
+    for(const side of [-1,1])this.box(driver,[.075,.05,.13],[x-.34+side*.075,y+.145,contactZ-.33],0x283a42,'bay-valve',.006);
+    bay.driverData=this.port(driver,[x-.45,y+.13,contactZ-.43]);bay.driverPower=this.port(driver,[x-.45,y+.13,contactZ-.25]);bay.driverOutputs=[];bay.actuatorInputs=[];bay.actuatorFaces=[];bay.padPorts=[];
+    for(const [index,side] of [-1,1].entries()){
+      const mx=x+side*.115,color=index?0xa4b5c4:0x92aaa9;
+      this.box(actuators,[.15,.14,.24],[mx,y,contactZ-.38],0x42555e,'pumps',.012);
+      const barrel=this.cylinder(actuators,.052,.18,[mx,y,contactZ-.19],0xaabac0,'pumps',{metalness:.35});barrel.rotation.x=Math.PI/2;
+      const shaft=this.cylinder(actuators,.02,.12,[mx,y,contactZ-.09],0xd9e3e3,'pumps',{metalness:.65,roughness:.24});shaft.rotation.x=Math.PI/2;
+      this.box(actuators,[.105,.10,.025],[mx,y,contactZ-.0405],0x84989f,'pumps',.008);
+      this.box(pads,[.11,.11,.028],[mx,y,contactZ-.014],color,'dock-seal',.008,{roughness:.9,metalness:0});
+      // The receiving patch belongs to the moving disposable kit; no liquid crosses this dry contact.
+      this.box(kit.object,[.024/s,.12/s,.11/s],[2.55-.012/s,.24,side*.115/s],color,'cartridge-membrane',.016);
+      bay.driverOutputs.push(this.port(driver,[x-.34+side*.07,y+.13,contactZ-.20]));bay.actuatorInputs.push(this.port(actuators,[mx,y+.06,contactZ-.48]));bay.actuatorFaces.push(this.port(actuators,[mx,y,contactZ-.028]));bay.padPorts.push(this.port(pads,[mx,y,contactZ]));
+    }
+    const heater=this.part(parent,'heater'),probe=this.part(parent,'temperature-probe'),switches=this.part(parent,'limit-switch');
+    const heaterY=kit.origin.y-.037;
+    this.box(heater,[.77,.035,1.07],[x,heaterY,kit.origin.z],0xb5a48c,'heater',.014,{metalness:.22});
+    this.box(heater,[.15,.035,.18],[x+.48,heaterY-.035,contactZ+.12],0x315e52,'heater',.006);this.box(heater,[.075,.075,.08],[x+.48,heaterY+.015,contactZ+.12],0x2b3941,'heater',.004);
+    const tip=this.cylinder(probe,.015,.16,[x+.39,heaterY+.018,kit.origin.z+.20],0xd4dddd,'temperature-probe',{metalness:.65});tip.rotation.z=Math.PI/2;
+    this.box(probe,[.065,.045,.07],[x+.48,heaterY+.018,kit.origin.z+.20],0x344952,'temperature-probe',.006);
+    bay.heaterPower=this.port(heater,[x+.48,heaterY+.015,contactZ+.12]);bay.probeData=this.port(probe,[x+.50,heaterY+.018,kit.origin.z+.20]);
+    const kitHalfWidth=1.625*s;for(const side of [-1,1]){this.box(switches,[.075,.08,.11],[x+side*(kitHalfWidth+.065),kit.origin.y+.035,contactZ+.11],0x2c3f47,'limit-switch',.008);this.box(switches,[.025,.025,.10],[x+side*(kitHalfWidth-.005),kit.origin.y+.08,contactZ+.11],0xc2d1d5,'limit-switch',.004);}
+    bay.switchData=this.port(switches,[x+kitHalfWidth+.065,kit.origin.y+.08,contactZ+.11]);
+    const ringParent=bay.optical.parent,ringPoint=bay.optical.position;
+    const ring=new THREE.Mesh(new THREE.RingGeometry(.13,.235,this.software?12:24),this.mat(0x416452,{side:THREE.DoubleSide,roughness:.6}));ring.rotation.x=-Math.PI/2;ring.position.set(ringPoint.x,ringPoint.y-.01,ringPoint.z);this.tag(ring,'optics');ringParent.add(ring);
+    for(let led=0;led<8;led++){const angle=led*Math.PI/4;this.box(ringParent,[.032,.018,.032],[ringPoint.x+Math.cos(angle)*.18,ringPoint.y-.021,ringPoint.z+Math.sin(angle)*.18],0xfffef0,'optics',.004,{emissive:0xb7ac86,emissiveIntensity:.20});}
+    for(const [object,id,name,pos] of [[actuators,'pumps','Dry linear actuators',[x,y+.13,contactZ-.28]],[driver,'bay-valve','Dual motor driver',[x-.34,y+.18,contactZ-.33]],[pads,'dock-seal','Silicone dry interface pad',[x,y,contactZ]],[heater,'heater','Bay heater',[x+.25,heaterY,kit.origin.z]],[probe,'temperature-probe','Temperature probe',[x+.48,heaterY+.05,kit.origin.z+.20]],[switches,'limit-switch','Insertion limit switches',[x+.43,kit.origin.y+.12,contactZ+.11]],[mount,'air-manifold','Local actuator support',[x,y-.1,contactZ-.28]]])this.addLabel(object,id,name,pos,{internal:true,bay:bayId});
   }
   buildSystemInfrastructure(parent,unitIndex,capacity){
-    const air=this.part(parent,'air-manifold',[0,.08,-.16]),backplane=this.part(parent,'backplane',[0,0,-.12]);
-    const segments=[[-1.7,capacity>2?2.15:1.7]];for(let module=0;module<(capacity-2)/2;module++){const x=3.06+module*1.64;segments.push([x-.68,x+.68]);}
+    const backplane=this.part(parent,'backplane',[0,0,-.12]),segments=[[-1.7,capacity>2?2.15:1.7]];for(let module=0;module<(capacity-2)/2;module++){const x=3.06+module*1.64;segments.push([x-.68,x+.68]);}
     const end=segments.at(-1)[1];
-    for(const [left,right] of segments){const width=right-left,mid=(left+right)/2;
-      const pipe=this.cylinder(air,.085,width,[mid,1.22,-1.45],0x8778b6,'air-manifold',{roughness:.55});pipe.rotation.z=Math.PI/2;
-      this.box(backplane,[width,.38,.085],[mid,.8,-1.48],0x31584d,'backplane',.012);
-      this.box(backplane,[width,.025,.025],[mid,.9,-1.42],0x3c7fa4,'backplane',.003);this.box(backplane,[width,.025,.025],[mid,.68,-1.42],0x8a969b,'backplane',.003);
-    }
-    for(let index=0;index<segments.length-1;index++){
-      const left=segments[index][1],right=segments[index+1][0],x=(left+right)/2,width=right-left,coupler=this.part(parent,'module-coupler');
-      const sleeve=this.cylinder(coupler,.125,width,[x,1.22,-1.45],0x8c7aab,'module-coupler',{roughness:.6});sleeve.rotation.z=Math.PI/2;
-      for(const edge of [left,right]){const ring=new THREE.Mesh(new THREE.TorusGeometry(.123,.022,5,12),this.mat(0x444950));ring.rotation.y=Math.PI/2;ring.position.set(edge,1.22,-1.45);this.tag(ring,'module-coupler');coupler.add(ring);}
-      this.box(coupler,[width,.15,.14],[x,.91,-1.48],0x3c7fa4,'module-coupler',.012);this.box(coupler,[width,.14,.14],[x,.69,-1.48],0x667078,'module-coupler',.012);
-      this.box(coupler,[.07,.77,.12],[x,.94,-1.56],0x737f85,'module-coupler',.008);this.addLabel(coupler,'module-coupler','Air, power and data coupler',[x,1.3,-1.45],{internal:true});
-    }
-    const infrastructure={index:unitIndex,parent,air,backplane,start:this.port(air,[-1.7,1.22,-1.45]),end:this.port(air,[end,1.22,-1.45]),dataStart:this.port(backplane,[-1.7,.9,-1.42]),powerStart:this.port(backplane,[-1.7,.68,-1.42]),dataEnd:this.port(backplane,[end,.9,-1.42]),powerEnd:this.port(backplane,[end,.68,-1.42]),branches:[]};
-    for(let number=0;number<capacity;number++){
-      const id=unitIndex*8+number+1,bay=this.bayPorts.get(id);if(!bay)continue;const p=bay.pressure.position,parentBay=bay.pressure.parent,valve=this.part(parentBay,'bay-valve',[0,.04,-.06]);
-      this.box(valve,[.24,.2,.24],[p.x,p.y,p.z-.15],0x806c9f,'bay-valve',.025);this.box(valve,[.17,.1,.17],[p.x,p.y+.15,p.z-.15],0x35464d,'bay-valve',.012);
-      const inlet=this.port(valve,[p.x,p.y,p.z-.27]),outlet=this.port(valve,[p.x-.06,p.y,p.z-.02]),returnOutlet=this.port(valve,[p.x+.06,p.y,p.z-.02]);
-      for(const side of [-1,1]){const fitting=this.cylinder(parentBay,.035,.12,[p.x+side*.06,p.y,p.z+.06],side<0?0x8778b6:0xb396cd,'bay-dock');fitting.rotation.x=Math.PI/2;}
-      const dock=this.port(parentBay,[p.x-.06,p.y,p.z+.12]),returnDock=this.port(parentBay,[p.x+.06,p.y,p.z+.12]);const electrical=this.port(valve,[p.x+.11,p.y+.15,p.z-.15]);this.box(valve,[.045,.055,.07],[p.x+.12,p.y+.15,p.z-.15],0x343f46,'bay-valve',.004);bay.valveIn=inlet;bay.valveOut=outlet;bay.valveReturn=returnOutlet;bay.valvePower=electrical;bay.dryDock=dock;bay.dryDockReturn=returnDock;
-      const tapX=p.x+(number>=2?(number%2===0?-.12:.12):0),airTap=this.port(air,[tapX,1.22,-1.45]),dataTap=this.port(backplane,[tapX,.9,-1.42]),powerTap=this.port(backplane,[tapX,.68,-1.42]);
-      const collar=this.cylinder(air,.115,.18,[tapX,1.22,-1.45],0xa195b5,'air-manifold');collar.rotation.x=Math.PI/2;
-      this.addLabel(valve,'bay-valve',`Bay ${String(id).padStart(2,'0')} valve`,[p.x,p.y+.22,p.z-.15],{internal:true,bay:id});infrastructure.branches.push({id,bay,airTap,dataTap,powerTap});
-    }
-    this.addLabel(air,'air-manifold','Dry-air manifold',[(end-1.7)/2,1.32,-1.45],{internal:true});this.addLabel(backplane,'backplane','Power and data backplane',[(end-1.7)/2,.81,-1.4],{internal:true});this.systemUnits.push(infrastructure);
+    for(const [left,right] of segments){const width=right-left,mid=(left+right)/2;this.box(backplane,[width,.38,.085],[mid,.8,-1.48],0x31584d,'backplane',.012);this.box(backplane,[width,.025,.025],[mid,.9,-1.42],0x3c7fa4,'backplane',.003);this.box(backplane,[width,.025,.025],[mid,.68,-1.42],0x8a969b,'backplane',.003);}
+    for(let index=0;index<segments.length-1;index++){const left=segments[index][1],right=segments[index+1][0],x=(left+right)/2,width=right-left,coupler=this.part(parent,'module-coupler');this.box(coupler,[width,.15,.14],[x,.91,-1.48],0x3c7fa4,'module-coupler',.012);this.box(coupler,[width,.14,.14],[x,.69,-1.48],0x667078,'module-coupler',.012);this.box(coupler,[.07,.55,.12],[x,.8,-1.56],0x737f85,'module-coupler',.008);this.addLabel(coupler,'module-coupler','Power and data coupler',[x,.94,-1.45],{internal:true});}
+    const infrastructure={index:unitIndex,parent,backplane,dataStart:this.port(backplane,[-1.7,.9,-1.42]),powerStart:this.port(backplane,[-1.7,.68,-1.42]),dataEnd:this.port(backplane,[end,.9,-1.42]),powerEnd:this.port(backplane,[end,.68,-1.42]),branches:[]};
+    for(let number=0;number<capacity;number++){const id=unitIndex*8+number+1,bay=this.bayPorts.get(id);if(!bay)continue;this.buildLocalBayHardware(id);const x=bay.pressure.position.x+(number>=2?(number%2===0?-.12:.12):0);infrastructure.branches.push({id,bay,dataTap:this.port(backplane,[x,.9,-1.42]),powerTap:this.port(backplane,[x,.68,-1.42])});}
+    this.addLabel(backplane,'backplane','Power and data backplane',[(end-1.7)/2,.81,-1.4],{internal:true});this.systemUnits.push(infrastructure);
   }
+
   buildSystemConnectionLayer(){
     this.systemLayer=new THREE.Group();this.root.add(this.systemLayer);this.systemLayer.visible=false;
     const add=(metadataId,from,to,{unit=0,bay=null,straight=false,route=null}={})=>{
@@ -331,10 +598,13 @@ export class ProductViewer {
       this.systemEdges.push({id:`${metadataId}-u${unit}-b${bay??'bus'}-${this.systemEdges.length}`,metadata,from,to,unit,bay,straight,route,group,path,dots,physical,curve:null,last:null});
     };
     for(const system of this.systemUnits){const unit=system.index,core=this.corePorts[unit];
-      add('system-air-supply',core.pump,system.start,{unit});add('system-air-branch',system.start,system.end,{unit,straight:true});
-      add('system-data-trunk',core.processorData,system.dataStart,{unit});add('system-data-trunk',system.dataStart,system.dataEnd,{unit,straight:true});add('system-power-trunk',core.power,system.powerStart,{unit});add('system-power-trunk',system.powerStart,system.powerEnd,{unit,straight:true});
-      add('display-data',core.processorData,core.screen,{unit});add('power-control',core.power,core.pumpPower,{unit});
-      for(const branch of system.branches){const options={unit,bay:branch.id};add('system-air-branch',branch.airTap,branch.bay.valveIn,options);add('system-dock-actuation',branch.bay.valveOut,branch.bay.dryDock,{...options,straight:true});add('system-dock-actuation',branch.bay.valveReturn,branch.bay.dryDockReturn,{...options,straight:true});add('system-data-branch',branch.dataTap,branch.bay.cameraData,options);add('system-power-branch',branch.powerTap,branch.bay.cameraPower,options);add('system-power-branch',branch.powerTap,branch.bay.valvePower,options);add('optical-capture',branch.bay.dockingWindow,branch.bay.optical,{...options,straight:true});}
+      add('system-data-trunk',core.processorData,system.dataStart,{unit});add('system-data-trunk',system.dataStart,system.dataEnd,{unit,straight:true});add('system-power-trunk',core.power,system.powerStart,{unit});add('system-power-trunk',system.powerStart,system.powerEnd,{unit,straight:true});add('display-data',core.processorData,core.screen,{unit});
+      for(const branch of system.branches){const options={unit,bay:branch.id};
+        add('local-driver-data',branch.dataTap,branch.bay.driverData,options);add('local-driver-power',branch.powerTap,branch.bay.driverPower,options);
+        add('system-air-supply',branch.bay.driverOutputs[0],branch.bay.actuatorInputs[0],{...options,straight:true});add('system-air-branch',branch.bay.driverOutputs[1],branch.bay.actuatorInputs[1],{...options,straight:true});
+        for(let index=0;index<2;index++)add('system-dock-actuation',branch.bay.actuatorFaces[index],branch.bay.padPorts[index],{...options,straight:true});
+        add('system-data-branch',branch.dataTap,branch.bay.cameraData,options);add('system-power-branch',branch.powerTap,branch.bay.cameraPower,options);add('heater-power',branch.powerTap,branch.bay.heaterPower,options);add('temperature-data',branch.bay.probeData,branch.dataTap,options);add('optical-capture',branch.bay.dockingWindow,branch.bay.optical,{...options,straight:true});
+      }
     }
     if(this.systemUnits.length===2){const a=this.systemUnits[0],b=this.systemUnits[1];add('cluster-data-link',a.dataStart,b.dataStart,{unit:-1,route:(from,to)=>new THREE.CatmullRomCurve3([from,new THREE.Vector3(-2.7,from.y,from.z),new THREE.Vector3(-2.7,to.y,to.z),to],false,'catmullrom',.06)});}
   }
@@ -350,93 +620,116 @@ export class ProductViewer {
   }
 
   buildDock(){
-    // Enlarged conceptual interface. Model units are illustrative, not dimensions.
+    // Illustrative local dry-mechanical bay. Model units are not specifications.
     const dock=new THREE.Group();this.root.add(dock);
     const frame=this.part(dock,'bay-dock');
-    this.box(frame,[2.8,.18,2.26],[0,.16,.62],0x46535a,'bay-dock',.055);
-    this.box(frame,[2.42,.12,2.1],[0,.30,.63],0xaebbc0,'bay-dock',.025);
-    this.box(frame,[2.35,.72,.20],[0,.61,-.10],0x6c7e87,'bay-dock',.025);
-    // Fixed and sliding rails share a locating plane at y=.48.
+    this.box(frame,[2.8,.18,2.30],[0,.16,.62],0x46535a,'bay-dock',.055);
+    this.box(frame,[2.42,.12,2.14],[0,.30,.63],0xaebbc0,'bay-dock',.025);
+    // A low rear cross-member supports dry hardware without hiding the shafts.
+    this.box(frame,[2.35,.18,.20],[0,.40,-.11],0x6c7e87,'bay-dock',.025);
     for(const side of [-1,1]){
-      this.box(frame,[.17,.12,1.95],[side*.76,.42,.80],0x657985,'bay-dock',.018);
-      this.box(frame,[.09,.025,1.87],[side*.76,.488,.80],0xd5dfe1,'bay-dock',.007);
-      this.box(frame,[.13,.34,.10],[side*.85,.64,.035],0xbfcacd,'bay-dock',.016);
+      this.box(frame,[.17,.13,1.95],[side*.76,.42,.80],0x657985,'bay-dock',.018);
+      this.box(frame,[.09,.023,1.87],[side*.76,.4735,.80],0xd5dfe1,'bay-dock',.007);
+      this.box(frame,[.13,.34,.10],[side*.85,.64,.098],0xbfcacd,'bay-dock',.016);
     }
-    const valve=this.part(dock,'bay-valve');
-    this.box(valve,[.47,.40,.44],[-.75,.61,-.52],0x746391,'bay-valve',.045);
-    this.box(valve,[.35,.12,.32],[-.75,.89,-.52],0x3b4650,'bay-valve',.025);
+    // Two local electric linear actuators terminate in solid, flat contact heads.
+    const actuators=this.part(dock,'pumps'),pads=this.part(dock,'dock-seal');
+    const contactColors=[0x92aaa9,0xa4b5c4];
+    for(const [index,x] of [-.30,.30].entries()){
+      this.box(actuators,[.27,.27,.42],[x,.60,-.75],0x465761,'pumps',.025);
+      const barrel=this.cylinder(actuators,.108,.48,[x,.60,-.42],0xa8b8bd,'pumps',{metalness:.35,roughness:.4});barrel.rotation.x=Math.PI/2;
+      const shaft=this.cylinder(actuators,.039,.40,[x,.60,-.10],0xd5e0e0,'pumps',{metalness:.7,roughness:.22});shaft.rotation.x=Math.PI/2;
+      const head=this.cylinder(actuators,.105,.040,[x,.60,.100],0x83979d,'pumps',{metalness:.18,roughness:.5});head.rotation.x=Math.PI/2;
+      // Head front z=.120, silicone front z=.148: no hole or fluid connection.
+      const pad=this.cylinder(pads,.109,.028,[x,.60,.134],contactColors[index],'dock-seal',{roughness:.93,metalness:0});pad.rotation.x=Math.PI/2;
+    }
+    // Dual motor-driver board and separate heater power switch are dry electronics.
+    const driver=this.part(dock,'bay-valve');
+    this.box(driver,[.59,.055,.47],[-.86,.91,-.54],0x315f53,'bay-valve',.015);
+    for(const x of [-1.01,-.71]){
+      this.box(driver,[.17,.075,.20],[x,.971,-.54],0x293a42,'bay-valve',.012);
+      this.box(driver,[.16,.105,.09],[x,.973,-.76],0x8d9ca2,'bay-valve',.009);
+    }
+    for(const [index,x] of [-.30,.30].entries())this.tube(driver,[[-.86+index*.19,.94,-.34],[-.59+index*.15,.82,-.24],[x,.73,-.57],[x,.70,-.77]],.023,index?0x7988aa:0x566778,'bay-valve');
     const connector=this.part(dock,'backplane');
     this.box(connector,[.58,.39,.25],[.76,.65,-.77],0x35464d,'backplane',.035);
     this.box(connector,[.48,.27,.035],[.76,.65,-.912],0xc3d0d0,'backplane',.012);
     for(const [x,color] of [[.63,0x667078],[.88,0x3c7fa4]]){
       const contact=this.cylinder(connector,.052,.075,[x,.65,-.948],color,'backplane',{metalness:.3,roughness:.35});contact.rotation.x=Math.PI/2;
     }
-    this.tube(connector,[[.63,.55,-.8],[.47,.38,-.78],[-.75,.38,-.76],[-.75,.43,-.53]],.024,0x667078,'backplane');
-    const seals=this.part(dock,'dock-seal');
-    for(const [index,x] of [-.30,.30].entries()){
-      const color=index===0?0x8778b6:0xb396cd;
-      // The dry-air nozzle and the ring's front face both end at z=.08.
-      const nozzle=this.cylinder(seals,.095,.08,[x,.60,.04],0xb3a2c9,'dock-seal',{metalness:.12,roughness:.45});nozzle.rotation.x=Math.PI/2;
-      const aperture=this.cylinder(seals,.058,.009,[x,.60,.0845],0x4c405b,'dock-seal');aperture.rotation.x=Math.PI/2;
-      const gasket=new THREE.Mesh(new THREE.TorusGeometry(.115,.02,this.software?5:8,this.software?12:24),this.mat(color,{roughness:.82}));gasket.position.set(x,.60,.06);this.tag(gasket,'dock-seal');seals.add(gasket);
-      this.tube(valve,[[-.75,.61,-.39],[-.70,.61,-.25],[x,.60,-.23],[x,.60,-.10]],.031,color,'bay-valve');
+    this.tube(connector,[[.63,.55,-.80],[.46,.38,-.78],[-.87,.38,-.78],[-.87,.88,-.73]],.024,0x667078,'backplane');
+    const heater=this.part(dock,'heater');
+    this.box(heater,[1.24,.060,1.28],[0,.445,.92],0xb1a188,'heater',.018,{metalness:.25,roughness:.6});
+    this.box(heater,[1.20,.010,1.23],[0,.480,.92],0x88877d,'heater',.008,{roughness:.9});
+    this.box(heater,[.35,.045,.32],[.88,.37,-.37],0x315e51,'heater',.012);
+    this.box(heater,[.16,.16,.17],[.88,.465,-.37],0x2c3940,'heater',.014);
+    this.tube(heater,[[.63,.55,-.80],[.90,.38,-.65],[.90,.40,-.37],[.59,.43,.45]],.023,0x667078,'heater');
+    const probe=this.part(dock,'temperature-probe');
+    const probeTip=this.cylinder(probe,.028,.25,[.69,.455,.91],0xd5dddd,'temperature-probe',{metalness:.7,roughness:.25});probeTip.rotation.z=Math.PI/2;
+    this.box(probe,[.12,.075,.10],[.84,.455,.91],0x344952,'temperature-probe',.015);
+    this.tube(probe,[[.89,.455,.91],[1.04,.35,.91],[1.04,.35,-.60],[.88,.64,-.80]],.017,0x3c7fa4,'temperature-probe');
+    const switches=this.part(dock,'limit-switch'),switchActuators=[];
+    for(const side of [-1,1]){
+      this.box(switches,[.17,.13,.22],[side*1.01,.565,.27],0x303f47,'limit-switch',.018);
+      this.box(switches,[.045,.055,.17],[side*.917,.608,.27],0xc9d6da,'limit-switch',.006);
+      const contact=this.box(switches,[.055,.055,.075],[side*.88,.607,.24],0x9eb4b9,'limit-switch',.010);
+      switchActuators.push({object:contact,side});
     }
     const cartridge=new THREE.Group();dock.add(cartridge);cartridge.userData.component='cartridge';
-    // This carrier can slide along the reusable rails; the assay body is disposable.
-    for(const side of [-1,1])this.box(cartridge,[.10,.055,1.7],[side*.76,.444,.85],0xc6d2d6,'bay-dock',.01);
-    this.box(cartridge,[1.78,.24,1.60],[0,.60,.94],0xdde8e4,'cartridge',.045,{transparent:true,opacity:.22,depthWrite:false,roughness:.18});
-    this.box(cartridge,[1.78,.035,1.60],[0,.735,.94],0xd6e5e1,'cartridge',.035,{transparent:true,opacity:.16,depthWrite:false,roughness:.15});
-    // Translating the assembled carrier by -.01 closes its rear face at z=.08 against the fixed gasket face.
-    this.box(cartridge,[1.80,.36,.06],[0,.60,.12],0xe0e7e6,'cartridge',.025,{transparent:true,opacity:.38,depthWrite:false,roughness:.25});
-    const membranes=new THREE.Group();cartridge.add(membranes);membranes.userData.component='cartridge-membrane';
+    for(const side of [-1,1])this.box(cartridge,[.10,.055,1.70],[side*.76,.454,.88],0xc6d2d6,'bay-dock',.010);
+    this.box(cartridge,[1.78,.25,1.60],[0,.610,1.00],0xdde8e4,'cartridge',.045,{transparent:true,opacity:.22,depthWrite:false,roughness:.18});
+    this.box(cartridge,[1.78,.035,1.60],[0,.7525,1.00],0xd6e5e1,'cartridge',.035,{transparent:true,opacity:.16,depthWrite:false,roughness:.15});
+    // Rear sealed wall begins exactly at the silicone pad contact plane z=.148.
+    this.box(cartridge,[1.80,.36,.060],[0,.60,.178],0xe0e7e6,'cartridge',.025,{transparent:true,opacity:.34,depthWrite:false,roughness:.25});
+    const kitSurface=new THREE.Group();cartridge.add(kitSurface);kitSurface.userData.component='cartridge-membrane';
     for(const [index,x] of [-.30,.30].entries()){
-      const color=index===0?0x8778b6:0xb396cd;
-      const seat=new THREE.Mesh(new THREE.TorusGeometry(.108,.014,this.software?5:8,this.software?12:24),this.mat(color,{roughness:.65}));seat.position.set(x,.60,.099);this.tag(seat,'dock-seal');cartridge.add(seat);
-      const airPocket=this.cylinder(membranes,.102,.067,[x,.60,.14],color,'cartridge-membrane',{transparent:true,opacity:.16,depthWrite:false,roughness:.2});airPocket.rotation.x=Math.PI/2;
-      const membrane=this.cylinder(membranes,.10,.018,[x,.60,.185],color,'cartridge-membrane',{roughness:.8,metalness:0});membrane.rotation.x=Math.PI/2;
-      const border=new THREE.Mesh(new THREE.TorusGeometry(.103,.012,this.software?5:8,this.software?12:24),this.mat(0x3b4b52,{roughness:.7}));border.position.set(x,.60,.185);this.tag(border,'cartridge-membrane');membranes.add(border);
+      // This legacy component ID now means sealed kit contact surface, not an air membrane.
+      this.box(kitSurface,[.235,.215,.026],[x,.60,.161],contactColors[index],'cartridge-membrane',.025,{roughness:.83,metalness:0});
     }
-    // Sealed fluid paths lie beyond the membrane barrier, inside the kit.
-    this.tube(cartridge,[[-.30,.66,.27],[-.48,.66,.42],[-.48,.66,1.30],[-.18,.66,1.46]],.026,0x9a253b,'cartridge');
-    this.tube(cartridge,[[.30,.66,.27],[.48,.66,.42],[.48,.66,1.30],[.18,.66,1.46]],.026,0xb98a24,'cartridge');
+    // All wet routes and residual fluid stay wholly beyond the sealed kit wall.
+    this.tube(cartridge,[[-.30,.680,.29],[-.48,.680,.44],[-.48,.680,1.34],[-.18,.680,1.50]],.026,0x9a253b,'cartridge');
+    this.tube(cartridge,[[.30,.680,.29],[.48,.680,.44],[.48,.680,1.34],[.18,.680,1.50]],.026,0xb98a24,'cartridge');
     for(const x of [-.34,.34]){
-      this.cylinder(cartridge,.17,.04,[x,.69,.83],0x68818b,'cartridge',{roughness:.35});
-      this.cylinder(cartridge,.135,.015,[x,.718,.83],x<0?0xb4757b:0xd2b46a,'cartridge',{roughness:.3});
+      this.cylinder(cartridge,.17,.035,[x,.721,.87],0x68818b,'cartridge',{roughness:.35});
+      this.cylinder(cartridge,.135,.013,[x,.747,.87],x<0?0xb4757b:0xd2b46a,'cartridge',{roughness:.3});
     }
-    this.box(cartridge,[.24,.12,.32],[.58,.62,1.48],0x587d71,'cartridge',.025);
-    // Lock lever lies beside the carrier and rotates independently for inspection.
-    const lock=new THREE.Group();lock.position.set(1.03,.67,.73);frame.add(lock);lock.userData.component='bay-dock';
+    this.box(cartridge,[.24,.12,.31],[.58,.63,1.53],0x587d71,'cartridge',.025);
+    const lock=new THREE.Group();lock.position.set(1.06,.69,.78);frame.add(lock);lock.userData.component='bay-dock';
     const pivot=this.cylinder(lock,.085,.17,[0,0,0],0x879ba5,'bay-dock');pivot.rotation.z=Math.PI/2;
     this.box(lock,[.13,.10,.48],[0,.05,.19],0x4c5a65,'bay-dock',.025);
-    this.box(lock,[.19,.13,.15],[0,.05,.43],0x8778b6,'bay-dock',.025);
+    this.box(lock,[.19,.13,.15],[0,.05,.43],0x7e959c,'bay-dock',.025);
     const optics=this.part(dock,'optics');
-    for(const side of [-1,1])this.box(optics,[.13,1.58,.18],[side*1.12,1.09,.56],0x8fa1aa,'optics',.02);
-    this.box(optics,[2.37,.13,.24],[0,1.90,.56],0x8fa1aa,'optics',.025);
-    this.box(optics,[.62,.35,.55],[0,1.71,.78],0x303f48,'optics',.04);
-    this.cylinder(optics,.17,.20,[0,1.45,.78],0x25323a,'optics',{roughness:.3});
-    this.cylinder(optics,.115,.035,[0,1.335,.78],0x76a1b5,'optics',{metalness:.45,roughness:.12});
-    for(const side of [-1,1])this.box(optics,[.11,.035,.58],[side*.34,1.30,.78],0xefe3ba,'optics',.012,{emissive:0x99854a,emissiveIntensity:.2});
-    this.tube(connector,[[.88,.75,-.80],[1.01,1.03,-.63],[1.01,1.84,.39],[.30,1.84,.56]],.023,0x3c7fa4,'backplane');
-    this.tube(connector,[[.63,.75,-.80],[.83,1.01,-.68],[.83,1.79,.38],[-.30,1.79,.56]],.023,0x667078,'backplane');
+    for(const side of [-1,1])this.box(optics,[.13,1.58,.18],[side*1.12,1.09,.60],0x8fa1aa,'optics',.020);
+    this.box(optics,[2.37,.13,.24],[0,1.90,.60],0x8fa1aa,'optics',.025);
+    this.box(optics,[.62,.35,.55],[0,1.71,.83],0x303f48,'optics',.040);
+    this.cylinder(optics,.17,.20,[0,1.45,.83],0x25323a,'optics',{roughness:.3});
+    this.cylinder(optics,.115,.035,[0,1.335,.83],0x76a1b5,'optics',{metalness:.45,roughness:.12});
+    const ringBoard=new THREE.Mesh(new THREE.RingGeometry(.185,.355,this.software?16:32),this.mat(0x3b6254,{side:THREE.DoubleSide,roughness:.65}));ringBoard.rotation.x=-Math.PI/2;ringBoard.position.set(0,1.304,.83);this.tag(ringBoard,'optics');optics.add(ringBoard);
+    for(let i=0;i<10;i++){const angle=i*Math.PI/5;this.box(optics,[.046,.025,.046],[Math.cos(angle)*.267,1.292,.83+Math.sin(angle)*.267],0xfffdf0,'optics',.006,{emissive:0xe5ddbf,emissiveIntensity:.25,roughness:.4});}
+    this.tube(connector,[[.88,.75,-.80],[1.01,1.03,-.63],[1.01,1.84,.43],[.30,1.84,.61]],.023,0x3c7fa4,'backplane');
+    this.tube(connector,[[.63,.75,-.80],[.83,1.01,-.68],[.83,1.79,.42],[-.30,1.79,.61]],.023,0x667078,'backplane');
     const opticalBeam=new THREE.Group();dock.add(opticalBeam);
-    const rays=[];for(const x of [-.34,.34])for(const z of [.55,1.06])rays.push(new THREE.Vector3(0,1.315,.78),new THREE.Vector3(x,.744,z));
-    const rayLines=new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(rays),new THREE.LineDashedMaterial({color:0xb58a24,dashSize:.055,gapSize:.035,transparent:true,opacity:.6}));rayLines.computeLineDistances();opticalBeam.add(rayLines);
-    this.addLabel(frame,'bay-dock','Guide rails and locating stop',[-.85,.47,1.18]);
-    this.addLabel(frame,'bay-dock','Cartridge lock',[1.03,.74,.85]);
-    this.addLabel(seals,'dock-seal','Dry-air ports and gaskets',[-.30,.60,.09]);
-    this.addLabel(membranes,'cartridge-membrane','Isolating membranes',[.30,.60,.185]);
-    this.addLabel(valve,'bay-valve','Local bay valve',[-.75,.86,-.52]);
-    this.addLabel(cartridge,'cartridge','Sealed single-use cartridge',[0,.75,.94]);
-    this.addLabel(optics,'optics','Camera and LED window',[0,1.85,.86]);
-    this.addLabel(connector,'backplane','Rear power and data plug',[.76,.72,-.89]);
-    const assembled=new THREE.Vector3(0,0,-.01),separated=new THREE.Vector3(0,0,1.5);cartridge.position.copy(this.state.dockSeparated===false?assembled:separated);lock.rotation.x=this.state.dockSeparated===false?0:-.75;opticalBeam.visible=this.state.dockSeparated===false;
-    this.dockInspection={cartridge,assembled,separated,lock,opticalBeam};this.center=new THREE.Vector3(0,1.0,1.05);this.span=4.75;
+    const rays=[];for(const x of [-.34,.34])for(const z of [.59,1.10])rays.push(new THREE.Vector3(0,1.315,.83),new THREE.Vector3(x,.760,z));
+    const rayLines=new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(rays),new THREE.LineDashedMaterial({color:0xbfa96d,dashSize:.055,gapSize:.035,transparent:true,opacity:.55}));rayLines.computeLineDistances();opticalBeam.add(rayLines);
+    // Eight main labels; the probe and rear plug remain independently selectable.
+    this.addLabel(frame,'bay-dock','Guide rails and lock',[-.85,.51,1.23]);
+    this.addLabel(actuators,'pumps','Actuators',[0,.76,-.62]);
+    this.addLabel(pads,'dock-seal','Silicone pads',[-.30,.60,.148]);
+    this.addLabel(kitSurface,'cartridge-membrane','Sealed kit surface',[.30,.60,.148]);
+    this.addLabel(driver,'bay-valve','Motor driver',[-.86,1.02,-.54]);
+    this.addLabel(heater,'heater','Heater',[.48,.49,.95]);
+    this.addLabel(switches,'limit-switch','Insertion switches',[1.01,.66,.27]);
+    this.addLabel(optics,'optics','Camera and light',[0,1.86,.91]);
+    const assembled=new THREE.Vector3(),separated=new THREE.Vector3(0,0,1.5),isSeparated=this.state.dockSeparated!==false;
+    cartridge.position.copy(isSeparated?separated:assembled);lock.rotation.x=isSeparated?-.75:0;opticalBeam.visible=!isSeparated;
+    this.dockInspection={cartridge,assembled,separated,lock,opticalBeam,switchActuators};this.center=new THREE.Vector3(0,1.0,1.05);this.span=4.75;
   }
   updateDockInspection(){
     if(!this.dockInspection||this.state.mode!=='dock')return;
     const inspection=this.dockInspection,separated=this.state.dockSeparated!==false,target=separated?inspection.separated:inspection.assembled;
     inspection.cartridge.position.lerp(target,.18);inspection.lock.rotation.x=THREE.MathUtils.lerp(inspection.lock.rotation.x,separated?-.75:0,.18);
-    inspection.opticalBeam.visible=!separated&&inspection.cartridge.position.distanceTo(inspection.assembled)<.025;
+    const fitted=!separated&&inspection.cartridge.position.distanceTo(inspection.assembled)<.025;inspection.opticalBeam.visible=fitted;
+    for(const contact of inspection.switchActuators||[]){contact.object.position.x=THREE.MathUtils.lerp(contact.object.position.x,contact.side*(fitted?.93:.88),.18);contact.object.material.color.setHex(fitted?0x71988a:0x9eb4b9);}
   }
 
   scopeForBay(bay){return this.bayState(bay)?.cartridge||(bay===Number(this.state.selectedBay||1)?this.state.cartridge:'complete');}
@@ -497,7 +790,7 @@ export class ProductViewer {
       if(item.id==='wells'&&this.state.mode==='cartridge')visible=false;
       if(item.bay&&item.bay!==selectedBay&&!/^bay-\d+$/.test(item.id))visible=false;
       if(item.internal&&item.unit!==selectedUnit&&this.state.mode==='device'&&!item.bay)visible=false;
-      const worldPosition=item.anchor.getWorldPosition(new THREE.Vector3());if(/^bay-\d+$/.test(item.id)&&closed){const normal=new THREE.Vector3(0,0,1).transformDirection(item.anchor.matrixWorld);if(normal.dot(this.camera.position.clone().sub(worldPosition))<=0)visible=false;}const position=this.projectPoint(worldPosition);positions.push({id:item.id,name:item.id==='waste'&&(this.state.kitUsed||this.bayState(item.bay)?.used)?'Sealed waste in used kit':item.name,x:position.x,y:position.y,visible:visible&&position.visible,bay:item.bay,key:`${item.id}-${item.bay||'assembly'}-${item.unit}-${positions.length}`});
+      const worldPosition=item.anchor.getWorldPosition(new THREE.Vector3());if(/^bay-\d+$/.test(item.id)&&closed){const normal=new THREE.Vector3(0,0,1).transformDirection(item.anchor.matrixWorld);if(normal.dot(this.camera.position.clone().sub(worldPosition))<=0)visible=false;}const position=this.projectPoint(worldPosition);const definition=comp(item.id),used=item.id==='waste'&&(this.state.kitUsed||this.bayState(item.bay)?.used);const name=used?(this.state.explanationMode?'Sealed waste in used cartridge':'Used kit waste'):definition?(this.state.explanationMode?definition.name:definition.simpleName):item.id.startsWith('reaction:')?describeEvidence({id:item.id.slice(9),name:item.name},{explanationMode:!!this.state.explanationMode}).title:item.name;positions.push({id:item.id,name,x:position.x,y:position.y,visible:visible&&position.visible,bay:item.bay,key:`${item.id}-${item.bay||'assembly'}-${item.unit}-${positions.length}`});
     }
     return positions;
   }
@@ -524,7 +817,7 @@ export class ProductViewer {
     for(const x of [-2.22,2.22])for(const z of [-1.38,1.38])this.cylinder(slab,.055,.04,[x,.30,z],0xa5afae,'cartridge');
     if(!mini){
       this.text(slab,type==='type'?'TYPE & SCREEN':isMatch?'MATCH ONLY':'COMPLETE ROUTINE',[.28,.359,-1.35],{width:3.65,height:.22,size:55,color:'#632c37',rotate:true});
-      this.text(slab,'CARTRIDGE ASSAY LAYOUT',[.25,.357,1.39],{width:2.8,height:.15,size:34,color:'#6b7776',rotate:true});
+      this.text(slab,'TEST AREAS',[.25,.357,1.39],{width:2.8,height:.15,size:34,color:'#6b7776',rotate:true});
     }
     const inletData={patientCells:{id:'patient-cells',x:-2.04,z:-.65,color:P.red},patientPlasma:{id:'patient-plasma',x:-2.04,z:.55,color:P.amber},donorCells:{id:'donor-cells',x:2.16,z:-.1,color:P.red}};
     for(const key of this.requiredFractions(type)){
@@ -542,8 +835,8 @@ export class ProductViewer {
       const liquid=this.cylinder(wells,.19,.028,[x,.408,z],color,'wells',{roughness:.4});
       this.cylinder(reagent,.098,.12,[x+.28,.45,z-.29],0xe7dec7,'reagents',{roughness:.3});
       this.channel(routes,[[x+.28,.45,z-.29],[x+.28,.4,z-.12],[x,.4,z]],0xc7bc8b,.35,.65);
-      if(!mini&&this.state.nativeLabels)this.text(wells,label,[x,.362,z+.32],{width:.69,height:.14,size:43,color:'#172d33',rotate:true});
-      const cells=[];for(let j=0;j<(this.software&&mini?4:12);j++){const cell=this.cylinder(wells,.026,.012,[x+Math.sin(j*2.4)*(react?.065:.12),.429,z+Math.cos(j*2.4)*(react?.065:.12)],P.red,'wells');cells.push(cell);}this.reactionWells.push({label,cells,x,z,defaultPositive:react,liquid,bay:this.buildingBay||null});if(!mini){const reactionIds={'Anti-A':'anti-a','Anti-B':'anti-b','Anti-D':'anti-d','A1 cells':'reverse-a1','B cells':'reverse-b','Screen I':'screen-i','Screen II':'screen-ii','Screen III':'screen-iii','Crossmatch':'crossmatch','Control +':'positive-control','Control −':'negative-control'};this.addLabel(wells,`reaction:${reactionIds[label]||label}`,label,[x,.45,z],{reaction:true});}
+      if(!mini&&this.state.nativeLabels)this.text(wells,describeEvidence({id:WELL_IDS[label],name:label},{explanationMode:!!this.state.explanationMode}).title,[x,.362,z+.32],{width:.69,height:.14,size:43,color:'#172d33',rotate:true});
+      const cells=[];for(let j=0;j<(this.software&&mini?4:12);j++){const cell=this.cylinder(wells,.026,.012,[x+Math.sin(j*2.4)*(react?.065:.12),.429,z+Math.cos(j*2.4)*(react?.065:.12)],P.red,'wells');cells.push(cell);}this.reactionWells.push({label,cells,x,z,defaultPositive:react,liquid,bay:this.buildingBay||null});if(!mini){const reactionIds=WELL_IDS;this.addLabel(wells,`reaction:${reactionIds[label]||label}`,label,[x,.45,z],{reaction:true});}
     };
     if(!isMatch){
       // The operator loads prepared fractions into separate, identified inlets.
@@ -561,7 +854,7 @@ export class ProductViewer {
     }else{
       this.activeFraction='patientPlasma';this.channel(routes,[[-2.04,.41,.55],[-1.55,.4,.55],[-1.2,.4,.1],[.65,.4,.1]],P.amber,.05,.55);this.activeFraction=null;
       this.box(routes,[.43,.07,.42],[-1.35,.35,-.28],0xd9dfd6,'channels',.025,{transparent:true,opacity:.7});
-      if(!mini)this.text(routes,'VALID PRIOR WORKUP REQUIRED',[-.45,.357,-1.03],{width:3.25,height:.15,size:39,color:'#626b64',rotate:true});
+      if(!mini)this.text(routes,'EARLIER TESTS MUST BE VALID',[-.45,.357,-1.03],{width:3.25,height:.15,size:39,color:'#626b64',rotate:true});
       makeWell(.65,.1,'Crossmatch','plasma');makeWell(-.5,.1,'Control −','plasma');makeWell(-.5,.88,'Control +','plasma',true);
     }
     if(hasDonor){
@@ -586,18 +879,18 @@ export class ProductViewer {
     this.box(support,[3.55,.15,.3],[0,3.27,-.9],P.metal,'structure',.025);
     const optics=this.part(this.root,'optics',[0,1.1,0]);
     this.box(optics,[1.45,.8,1.1],[0,2.77,-.1],P.dark,'optics',.07);
-    this.text(optics,'CAMERA SENSOR',[0,2.83,.46],{width:1.26,height:.16,size:44,color:'#e1e6df'});
+    this.text(optics,'CAMERA',[0,2.83,.46],{width:1.26,height:.16,size:44,color:'#e1e6df'});
     this.cylinder(optics,.32,.4,[0,2.2,-.1],0x4b565c,'optics');this.cylinder(optics,.23,.07,[0,1.98,-.1],0x7ba2b0,'optics',{metalness:.6,roughness:.07});
-    this.box(optics,[2.9,.08,1.65],[0,1.76,-.1],0xd6d8c9,'optics',.025);
-    for(const x of [-1.15,1.15])for(const z of [-.63,.43])this.box(optics,[.29,.04,.14],[x,1.7,z],0xfff2c4,'optics',.015,{emissive:0xffe4a1,emissiveIntensity:.6});
-    this.text(optics,'CONTROLLED ILLUMINATION',[0,1.77,.76],{width:2.64,height:.18,size:43,color:'#6e7365'});
+    const ring=new THREE.Mesh(new THREE.RingGeometry(.32,.92,this.software?16:32),this.mat(0x3f6352,{side:THREE.DoubleSide}));ring.rotation.x=-Math.PI/2;ring.position.set(0,1.76,-.1);this.tag(ring,'optics');optics.add(ring);
+    for(let index=0;index<12;index++){const angle=index*Math.PI/6;this.box(optics,[.075,.035,.075],[Math.cos(angle)*.63,1.73,-.1+Math.sin(angle)*.63],0xfffdf0,'optics',.009,{emissive:0xa79a70,emissiveIntensity:.25});}
+    this.text(optics,'WHITE LIGHT',[0,1.77,.76],{width:2.64,height:.18,size:43,color:'#6e7365'});
     const wells=this.part(this.root,'wells',[0,.2,.6]);this.box(wells,[3,.16,2],[0,.52,-.1],0xdce7e1,'wells',.08,{transparent:true,opacity:.62,roughness:.15});
     this.cylinder(wells,.65,.05,[0,.65,-.1],0xecd3c4,'wells',{transparent:true,opacity:.5});
     for(let i=0;i<34;i++){
       const k=i<20?i: i-20;const cx=i<20?-.21:.27;const zc=i<20?-.19:.13;
       const angle=k*2.399;const radius=.035*Math.sqrt(k);this.cylinder(wells,.055,.024,[cx+Math.cos(angle)*radius,.69,zc+Math.sin(angle)*radius],P.red,'wells');
     }
-    this.text(wells,'REACTION WINDOW',[0,.54,1.05],{width:3.25,height:.18,size:42,color:'#6e3b43'});
+    this.text(wells,'TEST CHAMBER',[0,.54,1.05],{width:3.25,height:.18,size:42,color:'#6e3b43'});
     const points=[];for(const x of [-.64,.64])for(const z of [-.74,.54])points.push(new THREE.Vector3(0,1.94,-.1),new THREE.Vector3(x,.74,z));
     const lines=new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(points),new THREE.LineBasicMaterial({color:0xb9a66c,transparent:true,opacity:.55}));this.root.add(lines);
     this.addLabel(support,'structure','Optical support frame',[-1.7,2,-.9]);this.addLabel(optics,'optics','Camera sensor and LED illumination',[0,2.7,.4]);this.addLabel(wells,'wells','Illustrative reaction window',[0,.75,-.1]);
